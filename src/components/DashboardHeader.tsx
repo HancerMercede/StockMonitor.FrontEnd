@@ -29,9 +29,9 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         <div>
           <div className="flex items-center space-x-4 mb-2">
             <img 
-              src="/images/logo.png" 
+              src="/images/StockMonitorAgentLogo.jpeg" 
               alt="Stock Monitor Logo" 
-              className="w-14 h-14 object-contain"
+              className="w-20 h-20 object-contain rounded-full"
             />
             <div>
               <h1 className="text-4xl font-bold text-white">Stock Monitor</h1>

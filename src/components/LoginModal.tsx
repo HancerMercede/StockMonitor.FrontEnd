@@ -68,9 +68,9 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           <div className="text-center">
             <div className="inline-flex items-center justify-center mb-4">
               <img 
-                src="/images/logo.png" 
+                src="/images/StockMonitorAgentLogo.jpeg" 
                 alt="Stock Monitor Logo" 
-                className="w-24 h-24 object-contain"
+                className="w-32 h-32 object-contain rounded-full"
               />
             </div>
             <h2 className="text-2xl font-bold text-gray-900">
