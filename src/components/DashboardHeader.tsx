@@ -27,18 +27,17 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     <div className="flex justify-between items-center mb-6">
       <div className="flex items-center space-x-6">
         <div>
-          <div className="flex items-center space-x-4 mb-2">
+          <div className="flex items-center space-x-4">
             <img 
               src="/images/StockMonitorAgentLogo.jpeg" 
               alt="Stock Monitor Logo" 
-              className="w-20 h-20 object-contain rounded-full"
+              className="w-16 h-16 object-contain rounded-full"
             />
             <div>
-              <h1 className="text-4xl font-bold text-white">Stock Monitor</h1>
-              <p className="text-white/60 text-sm font-medium">AND SCANNER</p>
+              <h1 className="text-4xl font-bold text-white leading-tight">IA Stock Monitor</h1>
+              <p className="text-white/70 text-sm mt-1">Advanced technical analysis & automated alerts</p>
             </div>
           </div>
-          <p className="text-white/80 text-base ml-[72px]">Advanced technical analysis & automated alerts</p>
         </div>
         
         {/* Navigation Buttons */}
