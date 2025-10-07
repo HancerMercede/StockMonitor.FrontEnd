@@ -1,0 +1,161 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply h-full;
+  }
+  
+  body {
+    @apply h-full font-sans text-white bg-gradient-dark;
+    margin: 0;
+    min-height: 100vh;
+    background-attachment: fixed;
+    position: relative;
+    /* Optimizaciones para Inter */
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 40% 60%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: -1;
+  }
+  
+  #root {
+    @apply h-full;
+    position: relative;
+    z-index: 1;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+  
+  .btn-primary {
+    @apply btn bg-accent-blue text-white hover:bg-blue-600 focus:ring-blue-500 shadow-lg hover:shadow-xl;
+  }
+  
+  .btn-secondary {
+    @apply btn bg-white/10 text-white border border-white/20 hover:bg-white/20 focus:ring-white/30 backdrop-blur-sm;
+  }
+  
+  .btn-success {
+    @apply btn bg-accent-green text-white hover:bg-green-600 focus:ring-green-500 shadow-lg hover:shadow-xl;
+  }
+  
+  .btn-danger {
+    @apply btn bg-accent-red text-white hover:bg-red-600 focus:ring-red-500 shadow-lg hover:shadow-xl;
+  }
+  
+  .card {
+    @apply bg-white/10 backdrop-blur-md shadow-2xl rounded-xl border border-white/20 p-6;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+  }
+  
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 32px 64px -12px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.2);
+  }
+  
+  .card-white {
+    @apply bg-white shadow-sm rounded-xl border border-gray-200 p-6;
+  }
+  
+  .input {
+    @apply block w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg shadow-sm placeholder-gray-400 text-white focus:outline-none focus:ring-2 focus:ring-accent-blue focus:border-transparent backdrop-blur-sm;
+  }
+  
+  .badge-basic {
+    @apply bg-blue-100 text-blue-800 ring-1 ring-blue-600/20;
+  }
+  
+  .badge-premium {
+    @apply bg-amber-100 text-amber-800 ring-1 ring-amber-600/20;
+  }
+  
+  .badge-vip {
+    @apply bg-red-100 text-red-800 ring-1 ring-red-600/20;
+  }
+  
+  /* Dashboard specific styles */
+  .dashboard-container {
+    @apply min-h-screen p-6;
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 25%, #1d4ed8 50%, #2563eb 75%, #3b82f6 100%);
+    background-attachment: fixed;
+  }
+  
+  .glass-card {
+    @apply backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl shadow-2xl;
+    background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.06) 100%);
+    box-shadow: 
+      0 25px 50px -12px rgba(0, 0, 0, 0.4),
+      0 0 0 1px rgba(255, 255, 255, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+  
+  .metric-card {
+    @apply glass-card p-6 transition-all duration-300 hover:scale-105;
+  }
+  
+  .text-gradient {
+    background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .accent-glow {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  }
+  
+  /* Tipografía optimizada para Inter */
+  .font-display {
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    letter-spacing: -0.02em;
+  }
+  
+  .font-numeric {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum';
+  }
+  
+  .text-trading {
+    @apply font-numeric tracking-tight;
+    font-weight: 600;
+  }
+  
+  .text-price {
+    @apply font-numeric font-bold tracking-tight;
+    font-feature-settings: 'tnum', 'cv02';
+  }
+  
+  .heading-primary {
+    @apply font-display font-black tracking-tight;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+  }
+  
+  .heading-secondary {
+    @apply font-display font-bold tracking-tight;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+}
