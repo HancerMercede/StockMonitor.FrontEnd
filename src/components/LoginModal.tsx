@@ -54,64 +54,67 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-slate-900/95 via-blue-900/95 to-slate-900/95 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md mx-4 overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            {mode === 'login' ? (
-              <>
-                <LogIn className="w-6 h-6 text-white" />
-                <h2 className="text-xl font-bold text-white">Iniciar Sesión</h2>
-              </>
-            ) : (
-              <>
-                <UserPlus className="w-6 h-6 text-white" />
-                <h2 className="text-xl font-bold text-white">Crear Cuenta</h2>
-              </>
-            )}
-          </div>
+        <div className="relative px-8 pt-8 pb-6">
           <button
             onClick={onClose}
-            className="text-white hover:bg-white/20 rounded-full p-1 transition-colors"
+            className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full p-2 transition-all"
           >
             <X className="w-5 h-5" />
           </button>
+          
+          <div className="text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl mb-4 shadow-lg shadow-blue-500/30">
+              {mode === 'login' ? (
+                <LogIn className="w-8 h-8 text-white" />
+              ) : (
+                <UserPlus className="w-8 h-8 text-white" />
+              )}
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900">
+              {mode === 'login' ? 'Bienvenido de nuevo' : 'Crear cuenta'}
+            </h2>
+            <p className="text-sm text-gray-500 mt-2">
+              {mode === 'login' ? 'Ingresa tus credenciales para continuar' : 'Completa el formulario para comenzar'}
+            </p>
+          </div>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="px-8 pb-8 space-y-5">
           {mode === 'register' && (
             <>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Email
                 </label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <div className="relative group">
+                  <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-400 bg-white"
+                    className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-gray-900 placeholder-gray-400 bg-gray-50 focus:bg-white transition-all"
                     placeholder="tu@email.com"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Usuario
                 </label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <div className="relative group">
+                  <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
                   <input
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     required
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-400 bg-white"
+                    className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-gray-900 placeholder-gray-400 bg-gray-50 focus:bg-white transition-all"
                     placeholder="nombredeusuario"
                   />
                 </div>
@@ -121,17 +124,17 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
           {mode === 'login' && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Email o Usuario
               </label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <div className="relative group">
+                <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
                 <input
                   type="text"
                   value={emailOrUsername}
                   onChange={(e) => setEmailOrUsername(e.target.value)}
                   required
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-400 bg-white"
+                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-gray-900 placeholder-gray-400 bg-gray-50 focus:bg-white transition-all"
                   placeholder="Email o usuario"
                 />
               </div>
@@ -139,23 +142,23 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
               Contraseña
             </label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <div className="relative group">
+              <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-400 bg-white"
+                className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-gray-900 placeholder-gray-400 bg-gray-50 focus:bg-white transition-all"
                 placeholder="••••••••"
               />
             </div>
             {mode === 'register' && (
-              <p className="text-xs text-gray-500 mt-1">Mínimo 6 caracteres</p>
+              <p className="text-xs text-gray-500 mt-2 ml-1">Mínimo 6 caracteres</p>
             )}
           </div>
 
@@ -163,7 +166,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold py-3 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold py-3.5 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 mt-6"
           >
             {loading ? (
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
@@ -176,15 +179,15 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           </button>
 
           {/* Switch Mode */}
-          <div className="text-center pt-4 border-t">
+          <div className="text-center pt-6 mt-6 border-t border-gray-100">
             <p className="text-sm text-gray-600">
               {mode === 'login' ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'}
               <button
                 type="button"
                 onClick={switchMode}
-                className="ml-2 text-blue-600 font-semibold hover:text-blue-700 transition-colors"
+                className="ml-2 text-blue-600 font-bold hover:text-blue-700 hover:underline transition-all"
               >
-                {mode === 'login' ? 'Regístrate' : 'Inicia Sesión'}
+                {mode === 'login' ? 'Regístrate gratis' : 'Inicia Sesión'}
               </button>
             </p>
           </div>
