@@ -754,6 +754,14 @@ const generateTiming = (
 };
 
 /**
+ * Redondea un precio a 2 decimales de forma segura
+ */
+const roundPrice = (price: number | undefined): number | undefined => {
+  if (price === undefined || price === null || isNaN(price)) return undefined;
+  return Math.round(price * 100) / 100;
+};
+
+/**
  * Genera niveles de precio usando datos reales de las alertas técnicas
  */
 const generatePriceLevels = (
@@ -785,15 +793,15 @@ const generatePriceLevels = (
   
   if (recommendation.action.includes('BUY')) {
     return {
-      entryPrice: Number(currentPrice.toFixed(2)),
-      stopLoss: technicalLevels.supportLevel || Number((currentPrice * (1 - stopLossPercent)).toFixed(2)),
-      takeProfit: technicalLevels.resistanceLevel || Number((currentPrice * (1 + takeProfitPercent)).toFixed(2))
+      entryPrice: roundPrice(currentPrice),
+      stopLoss: roundPrice(technicalLevels.supportLevel) || roundPrice(currentPrice * (1 - stopLossPercent)),
+      takeProfit: roundPrice(technicalLevels.resistanceLevel) || roundPrice(currentPrice * (1 + takeProfitPercent))
     };
   } else if (recommendation.action.includes('SELL')) {
     return {
-      entryPrice: Number(currentPrice.toFixed(2)),
-      stopLoss: technicalLevels.resistanceLevel || Number((currentPrice * (1 + stopLossPercent)).toFixed(2)),
-      takeProfit: technicalLevels.supportLevel || Number((currentPrice * (1 - takeProfitPercent)).toFixed(2))
+      entryPrice: roundPrice(currentPrice),
+      stopLoss: roundPrice(technicalLevels.resistanceLevel) || roundPrice(currentPrice * (1 + stopLossPercent)),
+      takeProfit: roundPrice(technicalLevels.supportLevel) || roundPrice(currentPrice * (1 - takeProfitPercent))
     };
   }
   
@@ -1142,12 +1150,18 @@ const extractTechnicalLevels = (alerts: Alert[], currentPrice: number): {
   
   // Si no hay niveles, calcular basado en precio actual
   if (!levels.supportLevel) {
-    levels.supportLevel = Number((currentPrice * 0.97).toFixed(2)); // 3% abajo
+    levels.supportLevel = roundPrice(currentPrice * 0.97); // 3% abajo
   }
   
   if (!levels.resistanceLevel) {
-    levels.resistanceLevel = Number((currentPrice * 1.03).toFixed(2)); // 3% arriba
+    levels.resistanceLevel = roundPrice(currentPrice * 1.03); // 3% arriba
   }
+  
+  // Asegurar que todos los niveles estén redondeados
+  levels.supportLevel = roundPrice(levels.supportLevel);
+  levels.resistanceLevel = roundPrice(levels.resistanceLevel);
+  levels.bollingerUpper = roundPrice(levels.bollingerUpper);
+  levels.bollingerLower = roundPrice(levels.bollingerLower);
   
   return levels;
 };

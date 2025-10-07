@@ -797,12 +797,14 @@ export const useAlerts = (): UseAlertsReturn => {
     };
   }, [queryClient, isAuthenticated]);
 
-  // Refresh manual
+  // Refresh manual - usa refetchQueries para mantener datos existentes
   const refresh = useCallback(async () => {
+    // ✅ refetchQueries mantiene los datos actuales mientras hace el refetch
+    // Esto preserva las alertas que llegaron por SignalR
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: alertsKeys.list() }),
-      queryClient.invalidateQueries({ queryKey: alertsKeys.status() }),
-      queryClient.invalidateQueries({ queryKey: alertsKeys.stats() }),
+      queryClient.refetchQueries({ queryKey: alertsKeys.list() }),
+      queryClient.refetchQueries({ queryKey: alertsKeys.status() }),
+      queryClient.refetchQueries({ queryKey: alertsKeys.stats() }),
     ]);
   }, [queryClient]);
 

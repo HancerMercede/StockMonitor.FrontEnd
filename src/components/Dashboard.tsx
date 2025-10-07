@@ -56,17 +56,10 @@ export default function Dashboard() {
   // Callback to refresh trades when a new trade is registered
   const [refetchTradesCallback, setRefetchTradesCallback] = useState<(() => void) | null>(null);
   
-  
-  // ✅ SOLUCIÓN PROFESIONAL: Refrescar cuando vuelves a alerts tab desde otros tabs
-  // React Query ya maneja staleTime, esto solo fuerza refetch si es necesario
-  const previousViewRef = useRef<typeof currentView>(currentView);
-  useEffect(() => {
-    // Solo refrescar si CAMBIAS a 'alerts' desde otra vista (no en mount inicial)
-    if (currentView === 'alerts' && previousViewRef.current !== 'alerts') {
-      refresh();
-    }
-    previousViewRef.current = currentView;
-  }, [currentView, refresh]);
+  // ✅ NO REFRESCAR al cambiar de tabs
+  // Las alertas de SignalR se agregan optimísticamente al cache de React Query.
+  // El cache ya tiene los datos más recientes (incluyendo alertas en tiempo real).
+  // Un refetch() sobrescribiría con solo las alertas del servidor (perdiendo las de SignalR).
   
   // Hook para alertas del watchlist
   const { 
@@ -300,10 +293,19 @@ export default function Dashboard() {
                       </span>
                     )}
                   </div>
-                  <span className="text-sm text-gray-500">
-                    {isConsolidatedView ? consolidatedAlerts.length : alerts.length} 
-                    {isConsolidatedView ? ' símbolos' : ' alertas'}
-                  </span>
+                  <div className="flex items-center space-x-3">
+                    <span className="text-sm text-gray-500">
+                      {isConsolidatedView ? consolidatedAlerts.length : alerts.length} 
+                      {isConsolidatedView ? ' símbolos' : ' alertas'}
+                    </span>
+                    <button
+                      onClick={refresh}
+                      className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      title="Refrescar alertas del servidor"
+                    >
+                      <RefreshCw className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
               </div>
               

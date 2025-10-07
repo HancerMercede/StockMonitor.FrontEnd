@@ -150,8 +150,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const IDLE_TIMEOUT = 15 * 60 * 1000; // 15 minutos
   const WARNING_TIMEOUT = 14 * 60 * 1000; // Advertencia 1 minuto antes
   
-  const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const warningTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const idleTimerRef = useRef<number | null>(null);
+  const warningTimerRef = useRef<number | null>(null);
   const warningToastIdRef = useRef<string | null>(null);
   
   // Resetear timer de inactividad

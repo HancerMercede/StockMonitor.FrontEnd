@@ -1,7 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { TrendingUp, TrendingDown, Minus, Calendar, Filter, Download, RefreshCw } from 'lucide-react';
 import { usePremiumAlerts, type PremiumAlert } from '../hooks/usePremiumAlerts';
-import type { ConsolidatedAlert } from '../types';
+import { useConsolidatedAlerts } from '../hooks/useConsolidatedAlerts';
+import { useStableConsolidatedAlerts } from '../hooks/useStableConsolidatedAlerts';
+import type { Alert, ConsolidatedAlert } from '../types';
 
 interface AlertHistoryItem extends ConsolidatedAlert {
   outcome?: 'winner' | 'loser' | 'neutral' | 'pending';
@@ -22,8 +24,63 @@ interface PerformanceStats {
   worstAlert: AlertHistoryItem | null;
 }
 
-// Helper para mapear alertas premium del agente a formato del componente
-const mapPremiumAlertToHistoryItem = (alert: PremiumAlert): AlertHistoryItem => {
+// Helper para convertir PremiumAlert del backend al formato Alert del frontend
+const mapPremiumAlertToAlert = (premiumAlert: PremiumAlert): Alert => {
+  return {
+    id: premiumAlert.id,
+    symbol: premiumAlert.symbol,
+    type: premiumAlert.type,
+    message: premiumAlert.message,
+    priority: premiumAlert.priority,
+    timestamp: premiumAlert.timestamp,
+    source: premiumAlert.source,
+    isRead: false,
+    value: premiumAlert.currentPrice,
+    indicators: {
+      currentPrice: premiumAlert.currentPrice,
+      rsi: premiumAlert.rsiValue,
+      macd: premiumAlert.macdValue ? {
+        macd: premiumAlert.macdValue,
+        signal: premiumAlert.macdSignal,
+        histogram: (premiumAlert.macdValue ?? 0) - (premiumAlert.macdSignal ?? 0),
+        trend: (premiumAlert.macdValue ?? 0) > (premiumAlert.macdSignal ?? 0) ? 'Bullish' : 'Bearish'
+      } : undefined,
+      trend: premiumAlert.adxValue ? {
+        adx: premiumAlert.adxValue,
+        trendStrength: premiumAlert.adxValue > 25 ? 'Strong' : 'Weak',
+        trendDirection: premiumAlert.type.includes('Bullish') ? 'Up' : 'Down'
+      } : undefined,
+      volume: premiumAlert.volumeMultiplier ? {
+        relativeVolume: premiumAlert.volumeMultiplier,
+        volumeSignal: premiumAlert.volumeMultiplier > 1.5 ? 'High' : 'Normal'
+      } : undefined
+    }
+  };
+};
+
+// Helper para agregar outcome a alertas consolidadas
+const mapConsolidatedToHistoryItem = (alert: ConsolidatedAlert): AlertHistoryItem => {
+  // Clasificar por confidence score
+  let outcome: 'winner' | 'loser' | 'neutral' | 'pending';
+  if (alert.confidenceScore >= 85) {
+    outcome = 'winner';
+  } else if (alert.confidenceScore <= 75) {
+    outcome = 'loser';
+  } else {
+    outcome = 'neutral';
+  }
+  
+  return {
+    ...alert,
+    outcome,
+    actualReturn: undefined,
+    closedAt: undefined,
+    daysHeld: undefined
+  };
+};
+
+// DEPRECADO - Ya no se usa
+const mapPremiumAlertToHistoryItem_OLD = (alert: PremiumAlert): AlertHistoryItem => {
   // Determinar recommendation basado en el tipo de alerta
   const isBullish = alert.type.includes('Bullish') || alert.type.includes('Oversold');
   const isBearish = alert.type.includes('Bearish') || alert.type.includes('Overbought');
@@ -81,6 +138,7 @@ const mapPremiumAlertToHistoryItem = (alert: PremiumAlert): AlertHistoryItem => 
 const AlertHistory: React.FC = () => {
   const [timeframe, setTimeframe] = useState<'week' | 'month' | 'quarter' | 'year'>('month');
   const [filterPriority, setFilterPriority] = useState<'all' | 'high' | 'medium' | 'low'>('all');
+  const [filterOutcome, setFilterOutcome] = useState<'all' | 'winner' | 'loser' | 'neutral' | 'pending'>('all');
   const [sortBy, setSortBy] = useState<'date' | 'quality' | 'confidence'>('quality');
   
   // Calcular rango de fechas basado en timeframe (memoizado para evitar loops)
@@ -107,14 +165,25 @@ const AlertHistory: React.FC = () => {
   // Obtener alertas premium del agente
   const { alerts: premiumAlerts, loading, error, refresh } = usePremiumAlerts(from, to);
   
-  // Mapear alertas premium a formato del componente
-  const historyAlerts: AlertHistoryItem[] = premiumAlerts.map(mapPremiumAlertToHistoryItem);
+  // Convertir a formato Alert y consolidar (igual que alertas activas)
+  const alertsForConsolidation = useMemo(
+    () => premiumAlerts.map(mapPremiumAlertToAlert),
+    [premiumAlerts]
+  );
+  const rawConsolidatedAlerts = useConsolidatedAlerts(alertsForConsolidation);
+  const consolidatedAlerts = useStableConsolidatedAlerts(rawConsolidatedAlerts);
+  
+  // Mapear alertas consolidadas a formato con outcome
+  const historyAlerts: AlertHistoryItem[] = useMemo(
+    () => consolidatedAlerts.map(mapConsolidatedToHistoryItem),
+    [consolidatedAlerts]
+  );
 
-  // Calcular estadísticas locales (para alertas premium del agente)
-  const calculateLocalStats = (): PerformanceStats => {
-    const highQuality = historyAlerts.filter(a => a.confidenceScore >= 90);
-    const mediumQuality = historyAlerts.filter(a => a.confidenceScore >= 80 && a.confidenceScore < 90);
-    const lowQuality = historyAlerts.filter(a => a.confidenceScore < 80);
+  // Calcular estadísticas locales  
+  const localStats = useMemo((): PerformanceStats => {
+    const highQuality = historyAlerts.filter(a => a.confidenceScore >= 85);
+    const mediumQuality = historyAlerts.filter(a => a.confidenceScore > 75 && a.confidenceScore < 85);
+    const lowQuality = historyAlerts.filter(a => a.confidenceScore <= 75);
     
     // Promedio de quality score
     const avgQualityScore = historyAlerts.length > 0
@@ -132,18 +201,51 @@ const AlertHistory: React.FC = () => {
 
     return {
       totalAlerts: historyAlerts.length,
-      winners: highQuality.length, // Reutilizamos para "alta calidad"
-      losers: lowQuality.length, // Reutilizamos para "baja calidad"
-      neutral: mediumQuality.length, // Calidad media
-      pending: 0, // Ya no aplica
-      winRate: avgQualityScore, // Reutilizamos para avg quality score
+      winners: highQuality.length,
+      losers: lowQuality.length,
+      neutral: mediumQuality.length,
+      pending: 0,
+      winRate: avgQualityScore,
       avgReturn: avgQualityScore,
       bestAlert,
       worstAlert
     };
-  };
-
-  const localStats = calculateLocalStats();
+  }, [historyAlerts]);
+  
+  // Filtrar alertas por prioridad y outcome (DEBE estar ANTES de los if statements)
+  const filteredAlerts = useMemo(() => {
+    let filtered = [...historyAlerts];
+    
+    // Aplicar filtro de outcome
+    if (filterOutcome !== 'all') {
+      filtered = filtered.filter(alert => alert.outcome === filterOutcome);
+    }
+    
+    // Aplicar filtro de prioridad
+    if (filterPriority !== 'all') {
+      if (filterPriority === 'high') {
+        filtered = filtered.filter(alert => alert.priority === 1);
+      } else if (filterPriority === 'medium') {
+        filtered = filtered.filter(alert => alert.priority === 2);
+      } else if (filterPriority === 'low') {
+        filtered = filtered.filter(alert => alert.priority >= 3);
+      }
+    }
+    
+    // Ordenar
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'quality':
+        case 'confidence':
+          return b.confidenceScore - a.confidenceScore;
+        case 'date':
+        default:
+          return b.lastUpdate - a.lastUpdate;
+      }
+    });
+    
+    return filtered;
+  }, [historyAlerts, filterPriority, filterOutcome, sortBy]);
   
   // Loading state
   if (loading) {
@@ -180,24 +282,6 @@ const AlertHistory: React.FC = () => {
       </div>
     );
   }
-
-  // Filtrar alertas por prioridad
-  const filteredAlerts = historyAlerts.filter(alert => {
-    if (filterPriority === 'all') return true;
-    if (filterPriority === 'high') return alert.priority === 1;
-    if (filterPriority === 'medium') return alert.priority === 2;
-    return alert.priority >= 3;
-  }).sort((a, b) => {
-    switch (sortBy) {
-      case 'quality':
-        return b.confidenceScore - a.confidenceScore;
-      case 'confidence':
-        return b.confidenceScore - a.confidenceScore;
-      case 'date':
-      default:
-        return b.lastUpdate - a.lastUpdate;
-    }
-  });
 
   const getOutcomeIcon = (outcome?: string) => {
     switch (outcome) {
@@ -402,8 +486,8 @@ const AlertHistory: React.FC = () => {
           <div className="flex items-center space-x-2">
             <Filter className="w-4 h-4 text-gray-500" />
             <select
-              value={filterPriority}
-              onChange={(e) => setFilterPriority(e.target.value as any)}
+              value={filterOutcome}
+              onChange={(e) => setFilterOutcome(e.target.value as any)}
               className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="all">Todas ({localStats.totalAlerts})</option>
