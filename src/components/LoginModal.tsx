@@ -66,12 +66,12 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           </button>
           
           <div className="text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl mb-4 shadow-lg shadow-blue-500/30">
-              {mode === 'login' ? (
-                <LogIn className="w-8 h-8 text-white" />
-              ) : (
-                <UserPlus className="w-8 h-8 text-white" />
-              )}
+            <div className="inline-flex items-center justify-center mb-4">
+              <img 
+                src="/images/logo.png" 
+                alt="Stock Monitor Logo" 
+                className="w-24 h-24 object-contain"
+              />
             </div>
             <h2 className="text-2xl font-bold text-gray-900">
               {mode === 'login' ? 'Bienvenido de nuevo' : 'Crear cuenta'}
