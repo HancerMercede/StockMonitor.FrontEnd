@@ -11,6 +11,7 @@ import { useConsolidatedAlerts } from '../hooks/useConsolidatedAlerts';
 import { useStableConsolidatedAlerts } from '../hooks/useStableConsolidatedAlerts';
 import { useAlertFilters } from '../hooks/useAlertFilters';
 import { useWatchlistAlerts } from '../hooks/useWatchlistAlerts';
+import { useSubscriptionAccess } from '../hooks/useSubscriptionAccess';
 import { userAlertService } from '../services/userAlertService';
 import LoginModal from './LoginModal';
 import { interpretAlert, getActionColor, getRiskColor } from '../utils/alertInterpreter';
@@ -24,11 +25,13 @@ import AlertHistory from './AlertHistory';
 import DisclaimerBanner from './DisclaimerBanner';
 import TraderStatsPanel from './TraderStatsPanel';
 import AlertLimitBanner from './AlertLimitBanner';
+import UpgradeButton from './ui/UpgradeButton';
 import type { ConsolidatedAlert } from '../types';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user, isAuthenticated, loading: authLoading, logout, alertStats, loadingStats } = useAuth();
+  const { hasAccessToHistory, hasAccessToTechnicalAnalysis, canTrackTrades, planName } = useSubscriptionAccess();
   const [showLoginModal, setShowLoginModal] = useState(false);
   
   const {
@@ -258,22 +261,52 @@ export default function Dashboard() {
             🔔 Alertas Activas
           </button>
           <button
-            onClick={() => setCurrentView('history')}
-            className={`px-6 py-3 rounded-lg font-semibold transition-all ${currentView === 'history' 
-              ? 'bg-white text-blue-600 shadow-lg' 
-              : 'bg-white/10 text-white hover:bg-white/20'
+            onClick={() => {
+              if (!hasAccessToHistory) {
+                alert(`El historial de alertas solo está disponible en el plan Premium. Tu plan actual: ${planName}`);
+                return;
+              }
+              setCurrentView('history');
+            }}
+            disabled={!hasAccessToHistory}
+            className={`px-6 py-3 rounded-lg font-semibold transition-all relative ${
+              currentView === 'history' 
+                ? 'bg-white text-blue-600 shadow-lg' 
+                : hasAccessToHistory
+                  ? 'bg-white/10 text-white hover:bg-white/20'
+                  : 'bg-white/5 text-white/40 cursor-not-allowed'
             }`}
           >
             📊 Historial de Alertas
+            {!hasAccessToHistory && (
+              <span className="ml-2 px-2 py-0.5 bg-yellow-500 text-xs font-bold rounded-full text-black">
+                Premium
+              </span>
+            )}
           </button>
           <button
-            onClick={() => setCurrentView('trades')}
-            className={`px-6 py-3 rounded-lg font-semibold transition-all ${currentView === 'trades' 
-              ? 'bg-white text-blue-600 shadow-lg' 
-              : 'bg-white/10 text-white hover:bg-white/20'
+            onClick={() => {
+              if (!canTrackTrades) {
+                alert(`El registro de trades está disponible desde el plan Pro. Tu plan actual: ${planName}`);
+                return;
+              }
+              setCurrentView('trades');
+            }}
+            disabled={!canTrackTrades}
+            className={`px-6 py-3 rounded-lg font-semibold transition-all relative ${
+              currentView === 'trades' 
+                ? 'bg-white text-blue-600 shadow-lg' 
+                : canTrackTrades
+                  ? 'bg-white/10 text-white hover:bg-white/20'
+                  : 'bg-white/5 text-white/40 cursor-not-allowed'
             }`}
           >
             📈 Mis Trades
+            {!canTrackTrades && (
+              <span className="ml-2 px-2 py-0.5 bg-green-500 text-xs font-bold rounded-full text-black">
+                Pro
+              </span>
+            )}
           </button>
         </div>
 
@@ -441,8 +474,8 @@ export default function Dashboard() {
                             </div>
                           </div>
                           
-                          {/* Technical Indicators Panel - Compact */}
-                          {alert.indicators && (
+                          {/* Technical Indicators Panel - Compact (Solo Premium) */}
+                          {hasAccessToTechnicalAnalysis && alert.indicators && (
                             <div className="mb-3">
                               <TechnicalIndicatorsPanel 
                                 indicators={{
@@ -456,6 +489,20 @@ export default function Dashboard() {
                                 }}
                                 compact
                               />
+                            </div>
+                          )}
+                          {!hasAccessToTechnicalAnalysis && (
+                            <div className="mb-3 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-2xl">🔒</span>
+                                  <div>
+                                    <p className="text-sm font-semibold text-gray-800">Análisis Técnico Avanzado</p>
+                                    <p className="text-xs text-gray-600">Disponible solo en plan Premium</p>
+                                  </div>
+                                </div>
+                                <UpgradeButton size="sm" />
+                              </div>
                             </div>
                           )}
                           
@@ -481,8 +528,31 @@ export default function Dashboard() {
           <Sidebar stats={stats} alerts={alerts} />
         </div>
         ) : currentView === 'history' ? (
-          // History View
-          <AlertHistory />
+          // History View (Solo Premium)
+          hasAccessToHistory ? (
+            <AlertHistory />
+          ) : (
+            <div className="bg-white rounded-xl shadow-lg p-8 text-center">
+              <div className="text-6xl mb-4">🔒</div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Historial de Alertas - Premium</h2>
+              <p className="text-gray-600 mb-6">Esta función está disponible exclusivamente para usuarios Premium.</p>
+              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-6 mb-6">
+                <h3 className="font-semibold text-gray-900 mb-2">Con Premium obtienes:</h3>
+                <ul className="text-left text-sm text-gray-700 space-y-2">
+                  <li>✅ Historial completo de todas las alertas</li>
+                  <li>✅ Análisis técnico avanzado con indicadores</li>
+                  <li>✅ Estadísticas de rendimiento histórico</li>
+                  <li>✅ Filtros avanzados por rendimiento y fecha</li>
+                  <li>✅ Exportación de datos en CSV/PDF</li>
+                </ul>
+              </div>
+              <UpgradeButton 
+                size="lg"
+                text="Actualizar a Premium"
+              />
+              <p className="text-xs text-gray-500 mt-4">Tu plan actual: {planName}</p>
+            </div>
+          )
         ) : (
           // Trader Stats View
           <TraderStatsPanel 

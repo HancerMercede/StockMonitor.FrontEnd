@@ -651,104 +651,9 @@ const ConsolidatedAlertCard: React.FC<ConsolidatedAlertCardProps> = memo(({
             </div>
           </div>
 
-          {/* INDICADORES TÉCNICOS - Estado rápido */}
-          <div className="mb-6">
-            <div className="bg-gradient-to-r from-slate-50 to-indigo-50 rounded-2xl p-5 border border-slate-200">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-slate-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <span className="text-white text-lg">📊</span>
-                </div>
-                <div>
-                  <h4 className="text-lg font-bold text-slate-900">Estado de Indicadores</h4>
-                  <p className="text-sm text-slate-600">Condición actual de cada indicador técnico</p>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {renderQuickIndicators(alert)}
-              </div>
-            </div>
-          </div>
-
-          {/* PANEL DE INDICADORES TÉCNICOS DETALLADO */}
-          {alert.rawAlerts && alert.rawAlerts.length > 0 && alert.rawAlerts[0]?.indicators && (
-            <div className="mb-6">
-              <div className="bg-white rounded-2xl p-5 border-2 border-slate-200 shadow-md">
-                <TechnicalIndicatorsPanel 
-                  indicators={{
-                    currentPrice: alert.rawAlerts[0].indicators.currentPrice,
-                    rsi: alert.rawAlerts[0].indicators.rsi,
-                    macd: alert.rawAlerts[0].indicators.macd,
-                    bollingerBands: alert.rawAlerts[0].indicators.bollingerBands,
-                    trend: alert.rawAlerts[0].indicators.trend,
-                    volume: alert.rawAlerts[0].indicators.volume,
-                    movingAverages: alert.rawAlerts[0].indicators.movingAverages
-                  }}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* INSTRUCCIONES PASO A PASO DETALLADAS */}
-          {alert.tradingAction.stepByStepInstructions && alert.tradingAction.stepByStepInstructions.length > 0 && (
-            <div className="mb-6">
-              <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-6 border border-indigo-200">
-                <div className="flex items-center space-x-3 mb-5">
-                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <span className="text-white text-lg">✓</span>
-                  </div>
-                  <div>
-                    <h4 className="text-xl font-bold text-slate-900">Plan de Ejecución Detallado</h4>
-                    <p className="text-sm text-slate-600">Todos los pasos para ejecutar correctamente</p>
-                  </div>
-                </div>
-                
-                <div className="space-y-3">
-                  {alert.tradingAction.stepByStepInstructions.map((instruction, idx) => (
-                    <div key={idx} className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/60 overflow-hidden">
-                      <div className="flex items-start space-x-4 p-4">
-                        <div className={`relative flex items-center justify-center w-10 h-10 rounded-xl text-sm font-black text-white shadow-lg ${
-                          instruction.importance === 'CRITICAL' ? 'bg-gradient-to-br from-red-500 to-red-600' :
-                          instruction.importance === 'HIGH' ? 'bg-gradient-to-br from-orange-500 to-orange-600' :
-                          instruction.importance === 'MEDIUM' ? 'bg-gradient-to-br from-yellow-500 to-yellow-600' :
-                          'bg-gradient-to-br from-blue-500 to-blue-600'
-                        }`}>
-                          {instruction.step}
-                          {instruction.importance === 'CRITICAL' && (
-                            <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                          )}
-                        </div>
-                        
-                        <div className="flex-1 min-w-0">
-                          <div className={`text-base font-bold mb-2 ${
-                            instruction.importance === 'CRITICAL' ? 'text-red-700' :
-                            instruction.importance === 'HIGH' ? 'text-orange-700' :
-                            instruction.importance === 'MEDIUM' ? 'text-yellow-700' :
-                            'text-blue-700'
-                          }`}>
-                            {instruction.action}
-                          </div>
-                          
-                          <div className="text-sm text-slate-600 leading-relaxed">
-                            {instruction.details}
-                          </div>
-                          
-                          {instruction.importance === 'CRITICAL' && (
-                            <div className="mt-2 inline-flex items-center space-x-2 bg-red-50 text-red-700 px-3 py-1 rounded-full text-xs font-semibold">
-                              <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></span>
-                              <span>CRÍTICO</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-          {/* Datos Técnicos Específicos para Profesionales */}
-          {alert.technicalIndicatorData && Object.keys(alert.technicalIndicatorData).length > 0 && (
+          {/* Sección técnica removida - Protección de estrategia */}
+          {/* Solo se mantienen las 3 tendencias principales arriba */}
+          {false && alert.technicalIndicatorData && Object.keys(alert.technicalIndicatorData).length > 0 && (
             <div className="mb-6">
               <div className="flex items-center space-x-2 mb-4">
                 <div className="w-6 h-6 bg-indigo-100 rounded-full flex items-center justify-center">
@@ -868,16 +773,11 @@ const ConsolidatedAlertCard: React.FC<ConsolidatedAlertCardProps> = memo(({
                     <div key={idx} className="bg-green-50 border-l-3 border-green-400 p-3 rounded-r-lg">
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-green-800 font-medium">
-                          {signal.description}
+                          {signal.description.replace(/\s*\([^)]*\)/g, '')}
                         </span>
-                        <div className="flex items-center space-x-2">
-                          <span className="text-xs bg-green-200 text-green-800 px-2 py-1 rounded-full">
-                            Peso: {signal.weight.toFixed(1)}
-                          </span>
-                          <span className="text-xs text-green-600">
-                            {formatTimestamp(new Date(signal.timestamp).getTime())}
-                          </span>
-                        </div>
+                        <span className="text-xs text-green-600">
+                          {formatTimestamp(new Date(signal.timestamp).getTime())}
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -899,16 +799,11 @@ const ConsolidatedAlertCard: React.FC<ConsolidatedAlertCardProps> = memo(({
                     <div key={idx} className="bg-red-50 border-l-3 border-red-400 p-3 rounded-r-lg">
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-red-800 font-medium">
-                          {signal.description}
+                          {signal.description.replace(/\s*\([^)]*\)/g, '')}
                         </span>
-                        <div className="flex items-center space-x-2">
-                          <span className="text-xs bg-red-200 text-red-800 px-2 py-1 rounded-full">
-                            Peso: {signal.weight.toFixed(1)}
-                          </span>
-                          <span className="text-xs text-red-600">
-                            {formatTimestamp(new Date(signal.timestamp).getTime())}
-                          </span>
-                        </div>
+                        <span className="text-xs text-red-600">
+                          {formatTimestamp(new Date(signal.timestamp).getTime())}
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -930,16 +825,11 @@ const ConsolidatedAlertCard: React.FC<ConsolidatedAlertCardProps> = memo(({
                     <div key={idx} className="bg-gray-50 border-l-3 border-gray-400 p-3 rounded-r-lg">
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-800 font-medium">
-                          {signal.description}
+                          {signal.description.replace(/\s*\([^)]*\)/g, '')}
                         </span>
-                        <div className="flex items-center space-x-2">
-                          <span className="text-xs bg-gray-200 text-gray-800 px-2 py-1 rounded-full">
-                            Peso: {signal.weight.toFixed(1)}
-                          </span>
-                          <span className="text-xs text-gray-600">
-                            {formatTimestamp(new Date(signal.timestamp).getTime())}
-                          </span>
-                        </div>
+                        <span className="text-xs text-gray-600">
+                          {formatTimestamp(new Date(signal.timestamp).getTime())}
+                        </span>
                       </div>
                     </div>
                   ))}

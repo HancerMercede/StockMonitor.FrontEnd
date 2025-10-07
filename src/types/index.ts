@@ -206,6 +206,9 @@ export interface SubscriptionTier {
   maxAlertsPerDay: number; // -1 = unlimited
   features: string[];
   isActive: boolean;
+  // Access restrictions
+  hasAccessToAlertHistory: boolean;
+  hasAccessToTechnicalAnalysis: boolean;
 }
 
 export interface CurrentSubscription extends SubscriptionTier {

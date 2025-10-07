@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { watchlistService } from '../services/watchlistService';
 import type { WatchlistResponse } from '../services/watchlistService';
 import { useAuth } from '../contexts/AuthContext';
+import SubscriptionModal from './SubscriptionModal';
 
 const WatchlistManager: React.FC = () => {
   const { subscription } = useAuth();
@@ -12,6 +13,7 @@ const WatchlistManager: React.FC = () => {
   const [newSymbol, setNewSymbol] = useState('');
   const [newNotes, setNewNotes] = useState('');
   const [adding, setAdding] = useState(false);
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
 
   // Cargar watchlist
   const loadWatchlist = async () => {
@@ -120,9 +122,18 @@ const WatchlistManager: React.FC = () => {
           Upgrade a <span className="font-semibold text-blue-600">Pro</span> o{' '}
           <span className="font-semibold text-purple-600">Premium</span> para monitorear tus propios símbolos.
         </p>
-        <button className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all">
+        <button 
+          onClick={() => setShowSubscriptionModal(true)}
+          className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all"
+        >
           Ver Planes
         </button>
+
+        {/* Subscription Modal */}
+        <SubscriptionModal 
+          isOpen={showSubscriptionModal}
+          onClose={() => setShowSubscriptionModal(false)}
+        />
       </div>
     );
   }

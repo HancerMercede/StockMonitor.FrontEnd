@@ -4,6 +4,8 @@ export interface RegisterRequest {
   email: string;
   username: string;
   password: string;
+  dateOfBirth: string; // ISO 8601 date string
+  tradingExperienceYears: number;
 }
 
 export interface LoginRequest {

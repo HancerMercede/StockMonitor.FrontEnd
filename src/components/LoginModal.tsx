@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Mail, Lock, User, LogIn, UserPlus } from 'lucide-react';
+import { X, Mail, Lock, User, LogIn, UserPlus, Calendar, TrendingUp } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -20,6 +20,8 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [emailOrUsername, setEmailOrUsername] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [tradingExperienceYears, setTradingExperienceYears] = useState<number>(0);
 
   if (!isOpen) return null;
 
@@ -33,7 +35,31 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         toast.success(`¡Bienvenido de nuevo!`);
         onClose();
       } else {
-        await register({ email, username, password });
+        // Validar edad mínima (18 años) en el cliente
+        const birthDate = new Date(dateOfBirth);
+        const age = new Date().getFullYear() - birthDate.getFullYear();
+        const monthDiff = new Date().getMonth() - birthDate.getMonth();
+        const adjustedAge = monthDiff < 0 || (monthDiff === 0 && new Date().getDate() < birthDate.getDate()) ? age - 1 : age;
+        
+        if (adjustedAge < 18) {
+          toast.error('Debes tener al menos 18 años para registrarte. El trading en mercados financieros implica riesgos significativos.');
+          setLoading(false);
+          return;
+        }
+        
+        if (tradingExperienceYears < 0 || tradingExperienceYears > 50) {
+          toast.error('La experiencia en trading debe estar entre 0 y 50 años.');
+          setLoading(false);
+          return;
+        }
+        
+        await register({ 
+          email, 
+          username, 
+          password, 
+          dateOfBirth,
+          tradingExperienceYears 
+        });
         toast.success(`¡Cuenta creada exitosamente! Bienvenido ${username}!`);
         onClose();
       }
@@ -51,6 +77,8 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     setUsername('');
     setPassword('');
     setEmailOrUsername('');
+    setDateOfBirth('');
+    setTradingExperienceYears(0);
   };
 
   return (
@@ -118,6 +146,48 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                     placeholder="nombredeusuario"
                   />
                 </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Fecha de Nacimiento <span className="text-red-500">*</span>
+                </label>
+                <div className="relative group">
+                  <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                  <input
+                    type="date"
+                    value={dateOfBirth}
+                    onChange={(e) => setDateOfBirth(e.target.value)}
+                    required
+                    max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
+                    className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-gray-900 placeholder-gray-400 bg-gray-50 focus:bg-white transition-all"
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-2 ml-1">
+                  Debes tener al menos 18 años (protección legal)
+                </p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Años de Experiencia en Trading <span className="text-red-500">*</span>
+                </label>
+                <div className="relative group">
+                  <TrendingUp className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                  <input
+                    type="number"
+                    value={tradingExperienceYears}
+                    onChange={(e) => setTradingExperienceYears(parseInt(e.target.value) || 0)}
+                    required
+                    min={0}
+                    max={50}
+                    className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-gray-900 placeholder-gray-400 bg-gray-50 focus:bg-white transition-all"
+                    placeholder="0"
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-2 ml-1">
+                  Ingresa 0 si eres principiante (protección legal)
+                </p>
               </div>
             </>
           )}
