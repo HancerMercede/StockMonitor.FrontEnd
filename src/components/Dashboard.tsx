@@ -237,8 +237,8 @@ export default function Dashboard() {
           onAddStock={() => navigate('/profile')}
         />
         
-        {/* Alert Limit Banner */}
-        {!loadingStats && alertStats && (
+        {/* Alert Limit Banner - Solo mostrar si NO es plan Free */}
+        {!loadingStats && alertStats && planName !== 'Free' && (
           <AlertLimitBanner stats={alertStats} />
         )}
 

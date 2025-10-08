@@ -35,6 +35,10 @@ export const API_CONFIG = {
     WATCHLIST_SYMBOLS: '/watchlist/symbols',
     
     // Alerts
+    ALERT_RECENT: '/alert/recent',
+    ALERT_STATUS: '/alert/status',
+    ALERT_STATS: '/alert/stats',
+    ALERT_HISTORY: '/alert/history',
     ACTIVE_ALERTS: '/alert/active',
     USER_ALERTS: (userId: string, limit = 50) => `/alert/user/${userId}?limit=${limit}`,
     UNREAD_ALERTS: (userId: string) => `/alert/user/${userId}/unread`,

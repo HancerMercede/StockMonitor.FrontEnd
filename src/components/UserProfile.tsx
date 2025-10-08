@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Mail, Calendar, Award, TrendingUp, TrendingDown, DollarSign, Target, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useSubscriptionAccess } from '../hooks/useSubscriptionAccess';
 import { apiClient } from '../utils/apiClient';
 import { tradeTrackingService } from '../services/tradeTrackingService';
 import toast from 'react-hot-toast';
@@ -29,6 +30,7 @@ interface TradeStats {
 export default function UserProfile() {
   const navigate = useNavigate();
   const { user, subscription } = useAuth();
+  const { canTrackTrades, planName } = useSubscriptionAccess();
   const [profile, setProfile] = useState<UserProfileData | null>(null);
   const [stats, setStats] = useState<TradeStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -203,7 +205,8 @@ export default function UserProfile() {
           <WatchlistManager />
         </div>
 
-        {/* Trading Stats */}
+        {/* Trading Stats - Solo mostrar si el usuario puede registrar trades (NO Free) */}
+        {canTrackTrades && (
         <div className="bg-white rounded-xl shadow-lg p-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Estadísticas de Trading</h2>
           
@@ -266,6 +269,52 @@ export default function UserProfile() {
             </div>
           </div>
         </div>
+        )}
+        
+        {/* Mensaje de upgrade para usuarios Free */}
+        {!canTrackTrades && (
+          <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-xl shadow-lg p-8 border-2 border-blue-200">
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+                <Target className="w-8 h-8 text-blue-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">Registro de Trades</h2>
+              <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
+                El registro y seguimiento de trades está disponible a partir del plan <span className="font-semibold text-green-600">Pro</span>.
+                Actualiza tu plan para llevar un control profesional de tus operaciones.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <button
+                  onClick={() => navigate('/subscriptions')}
+                  className="px-8 py-3 bg-gradient-to-r from-green-600 to-blue-600 text-white font-semibold rounded-lg hover:from-green-700 hover:to-blue-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+                >
+                  🚀 Ver Planes Pro y Premium
+                </button>
+              </div>
+              <div className="mt-6 pt-6 border-t border-blue-200">
+                <p className="text-sm text-gray-500 mb-3">Con el plan Pro obtendrás:</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl mx-auto">
+                  <div className="flex items-center space-x-2 text-left">
+                    <span className="text-green-600">✓</span>
+                    <span className="text-sm text-gray-700">Registro de hasta 100 trades/mes</span>
+                  </div>
+                  <div className="flex items-center space-x-2 text-left">
+                    <span className="text-green-600">✓</span>
+                    <span className="text-sm text-gray-700">Estadísticas completas de trading</span>
+                  </div>
+                  <div className="flex items-center space-x-2 text-left">
+                    <span className="text-green-600">✓</span>
+                    <span className="text-sm text-gray-700">Análisis de Win Rate</span>
+                  </div>
+                  <div className="flex items-center space-x-2 text-left">
+                    <span className="text-green-600">✓</span>
+                    <span className="text-sm text-gray-700">Seguimiento de P&L</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

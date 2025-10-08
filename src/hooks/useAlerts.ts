@@ -7,6 +7,7 @@ import { interpretAlert } from '../utils/alertInterpreter';
 import { useConsolidatedAlerts } from './useConsolidatedAlerts';
 import { apiClient } from '../utils/apiClient';
 import { useAuth } from '../contexts/AuthContext';
+import { ENDPOINTS } from '../config/api';
 
 // Mock data con señales técnicas completas
 const mockAlerts: Alert[] = [
@@ -404,7 +405,7 @@ export const alertsKeys = {
 // Fetch functions
 const fetchAlerts = async (): Promise<Alert[]> => {
   try {
-    const data = await apiClient.get<Alert[]>('/api/alert/recent');
+    const data = await apiClient.get<Alert[]>(ENDPOINTS.ALERT_RECENT);
     return data && data.length > 0 ? data : mockAlerts;
   } catch (error) {
     console.error('Error fetching alerts:', error);
@@ -415,7 +416,7 @@ const fetchAlerts = async (): Promise<Alert[]> => {
 const fetchStatus = async (): Promise<DashboardStatus> => {
   try {
     // Status y stats son públicos, no requieren auth
-    const res = await fetch('/api/alert/status');
+    const res = await fetch(ENDPOINTS.ALERT_STATUS);
     if (!res.ok) return mockStatus;
     return await res.json();
   } catch (error) {
@@ -426,7 +427,7 @@ const fetchStatus = async (): Promise<DashboardStatus> => {
 const fetchStats = async (): Promise<AlertStats> => {
   try {
     // Status y stats son públicos, no requieren auth
-    const res = await fetch('/api/alert/stats');
+    const res = await fetch(ENDPOINTS.ALERT_STATS);
     if (!res.ok) return mockStats;
     return await res.json();
   } catch (error) {
