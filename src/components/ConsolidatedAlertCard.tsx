@@ -3,6 +3,9 @@ import { ChevronDown, ChevronUp, TrendingUp, TrendingDown, Eye, AlertTriangle, S
 import type { ConsolidatedAlert, ConsolidatedRecommendation, RiskLevel, StepInstruction } from '../types';
 import TechnicalIndicatorsPanel from './TechnicalIndicatorsPanel';
 import TradeTrackingModal from './TradeTrackingModal';
+import { useSubscriptionAccess } from '../hooks/useSubscriptionAccess';
+import { useAuth } from '../contexts/AuthContext';
+import UpgradeButton from './ui/UpgradeButton';
 
 interface ConsolidatedAlertCardProps {
   alert: ConsolidatedAlert;
@@ -27,6 +30,11 @@ const ConsolidatedAlertCard: React.FC<ConsolidatedAlertCardProps> = memo(({
   isInWatchlist = false,
   onTradeRegistered
 }) => {
+  const { hasAccessToTechnicalAnalysis } = useSubscriptionAccess();
+  const { subscription } = useAuth();
+  
+  // Verificar si puede registrar trades (MaxTrackingsPerMonth > 0)
+  const canTrackTrades = subscription && subscription.maxTrackingsPerMonth !== 0;
   const getRecommendationConfig = (recommendation: ConsolidatedRecommendation) => {
     const configs = {
       'STRONG_BUY': { 
@@ -596,32 +604,62 @@ const ConsolidatedAlertCard: React.FC<ConsolidatedAlertCardProps> = memo(({
           </div>
         </div>
 
-        {/* Track Trade Button */}
-        <div className="mb-3">
+        {/* Track Trade Button (Solo Pro/Premium) */}
+        {canTrackTrades ? (
+          <div className="mb-3">
+            <button
+              onClick={onOpenTrackModal}
+              className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-semibold flex items-center justify-center space-x-2 transition-all shadow-md hover:shadow-lg"
+            >
+              <ClipboardCheck className="w-5 h-5" />
+              <span>Registrar Trade</span>
+            </button>
+          </div>
+        ) : (
+          <div className="mb-3 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <span className="text-2xl">🔒</span>
+                <div>
+                  <p className="text-sm font-semibold text-gray-800">Registro de Trades</p>
+                  <p className="text-xs text-gray-600">Disponible en planes Pro y Premium</p>
+                </div>
+              </div>
+              <UpgradeButton size="sm" />
+            </div>
+          </div>
+        )}
+
+      </div>
+
+      {/* Expand/Collapse Button (Solo Premium) */}
+      {hasAccessToTechnicalAnalysis ? (
+        <div className="border-t border-gray-200 bg-gray-50">
           <button
-            onClick={onOpenTrackModal}
-            className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-semibold flex items-center justify-center space-x-2 transition-all shadow-md hover:shadow-lg"
+            onClick={onToggleExpanded}
+            className="w-full p-4 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors flex items-center justify-center space-x-2"
           >
-            <ClipboardCheck className="w-5 h-5" />
-            <span>Registrar Trade</span>
+            <span>{isExpanded ? 'Ocultar análisis técnico' : 'Ver análisis técnico completo'}</span>
+            {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </button>
         </div>
+      ) : (
+        <div className="border-t border-gray-200 bg-gradient-to-r from-yellow-50 to-orange-50">
+          <div className="p-4 flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <span className="text-2xl">🔒</span>
+              <div>
+                <p className="text-sm font-semibold text-gray-800">Análisis Técnico Avanzado</p>
+                <p className="text-xs text-gray-600">Disponible solo en plan Premium</p>
+              </div>
+            </div>
+            <UpgradeButton size="sm" />
+          </div>
+        </div>
+      )}
 
-      </div>
-
-      {/* Expand/Collapse Button */}
-      <div className="border-t border-gray-200 bg-gray-50">
-        <button
-          onClick={onToggleExpanded}
-          className="w-full p-4 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors flex items-center justify-center space-x-2"
-        >
-          <span>{isExpanded ? 'Ocultar análisis técnico' : 'Ver análisis técnico completo'}</span>
-          {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-        </button>
-      </div>
-
-      {/* Expanded Details */}
-      {isExpanded && (
+      {/* Expanded Details (Solo Premium) */}
+      {hasAccessToTechnicalAnalysis && isExpanded && (
         <div className="border-t border-gray-200 bg-white p-5">
           
           {/* Sentiment Scores - Detallados */}
