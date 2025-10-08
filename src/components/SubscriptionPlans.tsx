@@ -105,12 +105,15 @@ export default function SubscriptionPlans() {
               <h3 className="text-2xl font-bold text-gray-900">{currentTier.name}</h3>
             </div>
             <div className="text-right">
-              <div className="text-sm text-gray-600">
-                Trades este mes: <span className="font-semibold text-gray-900">
-                  {currentTier.usage.tradesThisMonth}
-                  {currentTier.maxTrackingsPerMonth > 0 ? ` / ${currentTier.maxTrackingsPerMonth}` : ' / ∞'}
-                </span>
-              </div>
+              {/* Solo mostrar Trades si el plan permite registrarlos */}
+              {currentTier.maxTrackingsPerMonth !== 0 && (
+                <div className="text-sm text-gray-600">
+                  Trades este mes: <span className="font-semibold text-gray-900">
+                    {currentTier.usage.tradesThisMonth}
+                    {currentTier.maxTrackingsPerMonth > 0 ? ` / ${currentTier.maxTrackingsPerMonth}` : ' / ∞'}
+                  </span>
+                </div>
+              )}
               <div className="text-sm text-gray-600">
                 Alertas hoy: <span className="font-semibold text-gray-900">
                   {currentTier.usage.alertsToday}
@@ -183,10 +186,13 @@ export default function SubscriptionPlans() {
               {/* Limits */}
               <div className="mb-5 p-3 bg-gray-50 rounded-lg">
                 <div className="text-xs text-gray-700 space-y-1.5">
-                  <div>
-                    📊 <strong>Trades:</strong>{' '}
-                    {tier.maxTrackingsPerMonth < 0 ? 'Ilimitados' : `${tier.maxTrackingsPerMonth}/mes`}
-                  </div>
+                  {/* Solo mostrar Trades si el plan permite registrarlos (maxTrackingsPerMonth > 0 o -1) */}
+                  {tier.maxTrackingsPerMonth !== 0 && (
+                    <div>
+                      📊 <strong>Trades:</strong>{' '}
+                      {tier.maxTrackingsPerMonth < 0 ? 'Ilimitados' : `${tier.maxTrackingsPerMonth}/mes`}
+                    </div>
+                  )}
                   <div>
                     🔔 <strong>Alertas:</strong>{' '}
                     {tier.maxAlertsPerDay < 0 ? 'Ilimitadas' : `${tier.maxAlertsPerDay}/día`}
