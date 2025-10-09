@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, X, Trash2, AlertCircle, Star } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useQueryClient } from '@tanstack/react-query';
 import { watchlistService } from '../services/watchlistService';
 import type { WatchlistResponse } from '../services/watchlistService';
 import { useAuth } from '../contexts/AuthContext';
 import SubscriptionModal from './SubscriptionModal';
+import { alertsKeys } from '../hooks/useAlerts';
 
 const WatchlistManager: React.FC = () => {
-  const { subscription } = useAuth();
+  const { subscription, refreshAlertStats } = useAuth();
+  const queryClient = useQueryClient();
   const [watchlist, setWatchlist] = useState<WatchlistResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [newSymbol, setNewSymbol] = useState('');
@@ -52,6 +55,14 @@ const WatchlistManager: React.FC = () => {
       setNewSymbol('');
       setNewNotes('');
       await loadWatchlist();
+      
+      // ✅ Actualizar el contador de alertas en el dashboard
+      await refreshAlertStats();
+      
+      // ✅ Invalidar caché de alertas para forzar refetch cuando el usuario vuelva al dashboard
+      // Esto asegura que las nuevas alertas del símbolo agregado se muestren inmediatamente
+      queryClient.invalidateQueries({ queryKey: alertsKeys.list() });
+      console.log('🔄 Caché de alertas invalidado después de agregar símbolo');
     } catch (error: any) {
       toast.error(error.message || 'Error agregando símbolo');
     } finally {
@@ -67,6 +78,14 @@ const WatchlistManager: React.FC = () => {
       await watchlistService.removeSymbol(id);
       toast.success(`${symbol} eliminado`);
       await loadWatchlist();
+      
+      // ✅ Actualizar el contador de alertas en el dashboard
+      await refreshAlertStats();
+      
+      // ✅ Invalidar caché de alertas para forzar refetch cuando el usuario vuelva al dashboard
+      // Esto elimina las alertas del símbolo removido del dashboard
+      queryClient.invalidateQueries({ queryKey: alertsKeys.list() });
+      console.log('🔄 Caché de alertas invalidado después de eliminar símbolo');
     } catch (error: any) {
       toast.error(error.message || 'Error eliminando símbolo');
     }

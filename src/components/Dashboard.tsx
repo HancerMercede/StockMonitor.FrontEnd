@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { 
   TrendingUp, TrendingDown, BarChart3, Activity, 
   Bell, Plus, Zap, RefreshCw, MoreHorizontal,
   User, Target, Shield, Clock, ToggleLeft, ToggleRight, LogOut
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { useAlerts } from '../hooks/useAlerts';
+import { useAlerts, alertsKeys } from '../hooks/useAlerts';
 import { useConsolidatedAlerts } from '../hooks/useConsolidatedAlerts';
 import { useStableConsolidatedAlerts } from '../hooks/useStableConsolidatedAlerts';
 import { useAlertFilters } from '../hooks/useAlertFilters';
@@ -30,6 +31,7 @@ import type { ConsolidatedAlert } from '../types';
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { user, isAuthenticated, loading: authLoading, logout, alertStats, loadingStats } = useAuth();
   const { hasAccessToHistory, hasAccessToTechnicalAnalysis, canTrackTrades, planName } = useSubscriptionAccess();
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -99,6 +101,27 @@ export default function Dashboard() {
       setShowLoginModal(true);
     }
   }, [authLoading, isAuthenticated]);
+  
+  // ✅ Invalidar caché de alertas al montar Dashboard si está obsoleto (más de 30 segundos)
+  // Esto asegura que al volver del perfil de usuario, las alertas se actualicen
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    
+    const alertsState = queryClient.getQueryState(alertsKeys.list());
+    
+    if (alertsState && alertsState.dataUpdatedAt) {
+      const timeSinceLastUpdate = Date.now() - alertsState.dataUpdatedAt;
+      const STALE_THRESHOLD = 30 * 1000; // 30 segundos
+      
+      // Solo invalidar si los datos tienen más de 30 segundos
+      if (timeSinceLastUpdate > STALE_THRESHOLD) {
+        console.log(`🔄 Dashboard montado: Alertas tienen ${(timeSinceLastUpdate / 1000).toFixed(0)}s - Invalidando caché...`);
+        queryClient.invalidateQueries({ queryKey: alertsKeys.list() });
+      } else {
+        console.log(`✅ Dashboard montado: Alertas frescas (${(timeSinceLastUpdate / 1000).toFixed(0)}s) - No se invalida caché`);
+      }
+    }
+  }, [isAuthenticated, queryClient]);
   
   // Filters for alerts and consolidated alerts
   const alertFilters = useAlertFilters(alerts);

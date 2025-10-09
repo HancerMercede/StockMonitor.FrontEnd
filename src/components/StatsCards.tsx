@@ -26,11 +26,13 @@ const StatsCards: React.FC<StatsCardsProps> = memo(({ stats, status, unreadCount
       `}</style>
       {/* Today's Alerts */}
       <div 
-        className="p-4 rounded-xl text-white"
+        className="p-4 rounded-xl text-white hover:scale-105 transition-transform duration-300"
         style={{
-          background: 'rgba(255,255,255,0.1)',
-          border: '1px solid rgba(255,255,255,0.2)',
-          backdropFilter: 'blur(12px)'
+          background: 'rgba(255,255,255,0.08)',
+          border: '1px solid rgba(255,255,255,0.18)',
+          backdropFilter: 'blur(16px)',
+          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.25)',
+          WebkitBackdropFilter: 'blur(16px)'
         }}
       >
         <div className="flex items-center justify-between">
@@ -47,11 +49,13 @@ const StatsCards: React.FC<StatsCardsProps> = memo(({ stats, status, unreadCount
 
       {/* Unread Alerts */}
       <div 
-        className="p-4 rounded-xl text-white"
+        className="p-4 rounded-xl text-white hover:scale-105 transition-transform duration-300"
         style={{
-          background: 'rgba(255,255,255,0.1)',
-          border: '1px solid rgba(255,255,255,0.2)',
-          backdropFilter: 'blur(12px)'
+          background: 'rgba(255,255,255,0.08)',
+          border: '1px solid rgba(255,255,255,0.18)',
+          backdropFilter: 'blur(16px)',
+          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.25)',
+          WebkitBackdropFilter: 'blur(16px)'
         }}
       >
         <div className="flex items-center justify-between">
@@ -68,11 +72,13 @@ const StatsCards: React.FC<StatsCardsProps> = memo(({ stats, status, unreadCount
 
       {/* Total Alerts */}
       <div 
-        className="p-4 rounded-xl text-white"
+        className="p-4 rounded-xl text-white hover:scale-105 transition-transform duration-300"
         style={{
-          background: 'rgba(255,255,255,0.1)',
-          border: '1px solid rgba(255,255,255,0.2)',
-          backdropFilter: 'blur(12px)'
+          background: 'rgba(255,255,255,0.08)',
+          border: '1px solid rgba(255,255,255,0.18)',
+          backdropFilter: 'blur(16px)',
+          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.25)',
+          WebkitBackdropFilter: 'blur(16px)'
         }}
       >
         <div className="flex items-center justify-between">
@@ -89,11 +95,13 @@ const StatsCards: React.FC<StatsCardsProps> = memo(({ stats, status, unreadCount
 
       {/* Market Status */}
       <div 
-        className="p-4 rounded-xl text-white"
+        className="p-4 rounded-xl text-white hover:scale-105 transition-transform duration-300"
         style={{
-          background: 'rgba(255,255,255,0.1)',
-          border: '1px solid rgba(255,255,255,0.2)',
-          backdropFilter: 'blur(12px)'
+          background: 'rgba(255,255,255,0.08)',
+          border: '1px solid rgba(255,255,255,0.18)',
+          backdropFilter: 'blur(16px)',
+          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.25)',
+          WebkitBackdropFilter: 'blur(16px)'
         }}
       >
         <div className="flex items-center justify-between">

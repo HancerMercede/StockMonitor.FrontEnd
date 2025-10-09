@@ -119,6 +119,37 @@ The Vite development server is configured with proxy settings to forward:
 - Authentication tokens are stored in localStorage
 - API base URL is configured via environment variables
 
+### Cache Invalidation System
+
+The app implements an intelligent cache invalidation system to ensure alerts are always up-to-date:
+
+#### 1. **Watchlist Changes** (`WatchlistManager.tsx`)
+- Automatically invalidates alert cache when adding/removing symbols
+- Ensures new alerts for added symbols appear immediately
+
+#### 2. **Dashboard Navigation** (`Dashboard.tsx`)
+- Validates cache freshness when returning to Dashboard
+- Auto-refreshes if data is older than 30 seconds
+- Prevents stale data without manual refresh
+
+#### 3. **Browser Tab Changes** (`useAlerts.ts`)
+- Refreshes alerts when switching browser tabs/windows
+- Uses `visibilitychange` API for detection
+
+**Benefits:**
+- ✅ No manual refresh (F5) needed
+- ✅ Always shows latest trading signals
+- ✅ Respects SignalR real-time updates
+- ✅ Efficient - only fetches when necessary
+
+**Console Logs:**
+```
+🔄 Caché de alertas invalidado después de agregar símbolo
+🔄 Dashboard montado: Alertas tienen 45s - Invalidando caché...
+✅ Dashboard montado: Alertas frescas (15s) - No se invalida caché
+👁️ Usuario volvió - Refrescando alerts del servidor...
+```
+
 ## Troubleshooting
 
 ### CORS Errors
