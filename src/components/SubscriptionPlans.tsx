@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Check, Crown, Zap, Shield } from 'lucide-react';
 import { subscriptionService } from '../services/subscriptionService';
+import { stripeService } from '../services/stripeService';
 import { useAuth } from '../contexts/AuthContext';
+import toast from 'react-hot-toast';
 import type { SubscriptionTier, CurrentSubscription } from '../types';
 
 export default function SubscriptionPlans() {
@@ -33,18 +35,40 @@ export default function SubscriptionPlans() {
     }
   };
 
-  const handleChangeTier = async (tierId: string) => {
+  const handleChangeTier = async (tierId: string, tierName: string, tierPrice: number) => {
     try {
       setChanging(tierId);
       setError('');
-      await subscriptionService.changeTier(tierId);
-      // Actualizar datos locales y del contexto global
-      await Promise.all([
-        loadSubscriptionData(),
-        refreshSubscription()
-      ]);
+      
+      // Si el tier es de pago (Pro o Premium), usar Stripe
+      if (tierPrice > 0) {
+        // Verificar que Stripe esté configurado
+        if (!stripeService.isConfigured()) {
+          throw new Error('Stripe no está configurado. Contacta al administrador.');
+        }
+        
+        toast.loading(`Redirigiendo a checkout de ${tierName}...`, { id: 'stripe-redirect' });
+        
+        // Redirigir a Stripe Checkout
+        await stripeService.createCheckoutSession(tierId);
+        // Si llegamos aquí, algo falló (normalmente redirige)
+        toast.dismiss('stripe-redirect');
+      } else {
+        // Plan Free - usar el servicio normal
+        await subscriptionService.changeTier(tierId);
+        toast.success('Plan actualizado correctamente');
+        
+        // Actualizar datos locales y del contexto global
+        await Promise.all([
+          loadSubscriptionData(),
+          refreshSubscription()
+        ]);
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al cambiar plan');
+      toast.dismiss('stripe-redirect');
+      const errorMsg = err instanceof Error ? err.message : 'Error al cambiar plan';
+      setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setChanging(null);
     }
@@ -212,7 +236,7 @@ export default function SubscriptionPlans() {
 
               {/* CTA Button */}
               <button
-                onClick={() => !isCurrentPlan && handleChangeTier(tier.id)}
+                onClick={() => !isCurrentPlan && handleChangeTier(tier.id, tier.name, tier.price)}
                 disabled={isCurrentPlan || changing === tier.id}
                 className={`w-full py-3 rounded-lg font-semibold text-base transition-all ${
                   isCurrentPlan

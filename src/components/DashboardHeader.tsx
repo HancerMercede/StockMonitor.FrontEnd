@@ -3,6 +3,7 @@ import {
   TrendingUp, BarChart3, Plus, ToggleLeft, ToggleRight, Wifi, WifiOff, Loader2
 } from 'lucide-react';
 import UserMenu from './UserMenu';
+import { useSubscriptionAccess } from '../hooks/useSubscriptionAccess';
 
 interface DashboardHeaderProps {
   isConsolidatedView: boolean;
@@ -23,6 +24,8 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   onLogout,
   onAddStock
 }) => {
+  const { isPro, isPremium, isFree } = useSubscriptionAccess();
+  const canUseDetailedView = isPro || isPremium; // Pro y Premium pueden usar vista detallada
   return (
     <div className="flex justify-between items-center mb-6">
       <div className="flex items-center space-x-6">
@@ -101,26 +104,49 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         {/* Consolidated View Toggle */}
         <div className="flex items-center space-x-2">
           <span className="text-sm text-white/70">Vista:</span>
-          <button
-            onClick={onToggleView}
-            className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all ${
-              isConsolidatedView 
-                ? 'bg-blue-500 text-white' 
-                : 'bg-white/10 text-white/60 hover:bg-white/20'
-            }`}
-          >
-            {isConsolidatedView ? (
-              <>
-                <ToggleRight className="w-4 h-4" />
-                <span className="text-sm font-medium">Consolidada</span>
-              </>
-            ) : (
-              <>
-                <ToggleLeft className="w-4 h-4" />
-                <span className="text-sm font-medium">Detallada</span>
-              </>
-            )}
-          </button>
+          
+          {canUseDetailedView ? (
+            <button
+              onClick={onToggleView}
+              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all ${
+                isConsolidatedView 
+                  ? 'bg-blue-500 text-white' 
+                  : 'bg-white/10 text-white/60 hover:bg-white/20'
+              }`}
+            >
+              {isConsolidatedView ? (
+                <>
+                  <ToggleRight className="w-4 h-4" />
+                  <span className="text-sm font-medium">Consolidada</span>
+                </>
+              ) : (
+                <>
+                  <ToggleLeft className="w-4 h-4" />
+                  <span className="text-sm font-medium">👁️ Detallada</span>
+                </>
+              )}
+            </button>
+          ) : (
+            <div className="relative group">
+              <button className="flex items-center space-x-3 px-3 py-2 rounded-lg bg-white/10 cursor-not-allowed opacity-75 border border-white/20">
+                <div className="flex items-center space-x-2">
+                  <ToggleRight className="w-4 h-4 text-white/50" />
+                  <span className="text-sm font-medium text-white/60">Consolidada</span>
+                </div>
+                <div className="h-4 w-px bg-white/20"></div>
+                <div className="flex items-center space-x-1">
+                  <span className="text-green-400 text-xs">🔒</span>
+                  <span className="text-xs font-semibold text-green-300">Pro</span>
+                </div>
+              </button>
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 hidden group-hover:block z-50">
+                <div className="bg-gray-900 text-white text-xs rounded-lg p-3 whitespace-nowrap shadow-xl border border-gray-700">
+                  <div className="font-semibold mb-1">👁️ Vista Detallada</div>
+                  <div>Disponible desde plan Pro</div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
         
         {/* User Menu */}

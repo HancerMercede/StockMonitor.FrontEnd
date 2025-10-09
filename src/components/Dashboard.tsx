@@ -279,8 +279,8 @@ export default function Dashboard() {
           >
             📊 Historial de Alertas
             {!hasAccessToHistory && (
-              <span className="ml-2 px-2 py-0.5 bg-yellow-500 text-xs font-bold rounded-full text-black">
-                Premium
+              <span className="ml-2 px-2 py-0.5 bg-gradient-to-r from-yellow-400 to-amber-500 text-xs font-bold rounded-full text-gray-800 shadow-sm">
+                🔒 Premium
               </span>
             )}
           </button>
@@ -303,8 +303,8 @@ export default function Dashboard() {
           >
             📈 Mis Trades
             {!canTrackTrades && (
-              <span className="ml-2 px-2 py-0.5 bg-green-500 text-xs font-bold rounded-full text-black">
-                Pro
+              <span className="ml-2 px-2 py-0.5 bg-gradient-to-r from-green-400 to-emerald-500 text-xs font-bold rounded-full text-gray-800 shadow-sm">
+                🔒 Pro
               </span>
             )}
           </button>

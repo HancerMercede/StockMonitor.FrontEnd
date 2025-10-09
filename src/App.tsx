@@ -5,6 +5,8 @@ import { AuthProvider } from './contexts/AuthContext';
 import { SignalRProvider } from './contexts/SignalRContext';
 import Dashboard from './components/Dashboard';
 import UserProfile from './components/UserProfile';
+import SubscriptionPlans from './components/SubscriptionPlans';
+import SubscriptionSuccess from './components/SubscriptionSuccess';
 
 function App() {
   return (
@@ -20,7 +22,10 @@ function App() {
           <SignalRProvider>
             <Routes>
               <Route path="/" element={<Dashboard />} />
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/profile" element={<UserProfile />} />
+              <Route path="/subscription" element={<SubscriptionPlans />} />
+              <Route path="/subscription/success" element={<SubscriptionSuccess />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </SignalRProvider>

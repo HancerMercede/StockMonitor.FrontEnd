@@ -247,3 +247,33 @@ export interface UserAlertStats {
     canReceiveMore: boolean;
   };
 }
+
+// Stripe Payment Types
+export interface CreateCheckoutRequest {
+  tierId: string;
+  successUrl?: string;
+  cancelUrl?: string;
+}
+
+export interface CreateCheckoutResponse {
+  sessionId: string;
+  checkoutUrl: string;
+}
+
+export interface ActiveSubscription {
+  id: string;
+  userId: string;
+  stripeSubscriptionId: string;
+  stripePriceId: string;
+  status: string;
+  currentPeriodStart: string;
+  currentPeriodEnd: string;
+  cancelAtPeriodEnd: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SubscriptionStatusResponse {
+  hasActiveSubscription: boolean;
+  subscription: ActiveSubscription | null;
+}

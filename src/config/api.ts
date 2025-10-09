@@ -16,6 +16,12 @@ export const API_CONFIG = {
   // Timeout settings
   TIMEOUT: 10000,
   
+  // Frontend Routes
+  ROUTES: {
+    SUBSCRIPTION_SUCCESS: '/subscription/success',
+    SUBSCRIPTION_MANAGE: '/subscription',
+  },
+  
   // API Endpoints
   ENDPOINTS: {
     // Auth
@@ -69,8 +75,13 @@ export const API_CONFIG = {
     USER_ALERTS_MARK_READ: (alertId: string) => `/user-alerts/${alertId}/read`,
     USER_ALERTS_TOGGLE_STAR: (alertId: string) => `/user-alerts/${alertId}/star`,
     USER_ALERTS_WATCHLIST: (limit = 50) => `/user-alerts/watchlist-alerts?limit=${limit}`,
+    
+    // Stripe Payments
+    STRIPE_CHECKOUT: '/payments/checkout',
+    STRIPE_SUBSCRIPTION_ACTIVE: '/payments/subscriptions/active',
+    STRIPE_SUBSCRIPTION_CANCEL: '/payments/subscriptions/cancel',
   }
 };
 
 // Export individual configs for easy access
-export const { BASE_URL, SIGNALR_URL, TIMEOUT, ENDPOINTS } = API_CONFIG;
+export const { BASE_URL, SIGNALR_URL, TIMEOUT, ROUTES, ENDPOINTS } = API_CONFIG;
