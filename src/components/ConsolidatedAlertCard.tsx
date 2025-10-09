@@ -30,7 +30,7 @@ const ConsolidatedAlertCard: React.FC<ConsolidatedAlertCardProps> = memo(({
   isInWatchlist = false,
   onTradeRegistered
 }) => {
-  const { hasAccessToTechnicalAnalysis } = useSubscriptionAccess();
+  const { hasAccessToTechnicalAnalysis, hasAccessToMLScore, isFree } = useSubscriptionAccess();
   const { subscription } = useAuth();
   
   // Verificar si puede registrar trades (MaxTrackingsPerMonth > 0)
@@ -603,6 +603,141 @@ const ConsolidatedAlertCard: React.FC<ConsolidatedAlertCardProps> = memo(({
             )}
           </div>
         </div>
+
+        {/* ML SIGNAL QUALITY SCORE - Solo para Premium */}
+        {alert.rawAlerts.some(a => a.mlConfidenceScore !== undefined) && (
+          hasAccessToMLScore ? (
+            <div className="mb-5 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 rounded-xl p-4 border-2 border-indigo-200 shadow-md">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center space-x-2">
+                <span className="text-xl">🧠</span>
+                <h4 className="font-bold text-slate-900">ML Signal Quality</h4>
+              </div>
+              {(() => {
+                const mlAlert = alert.rawAlerts.find(a => a.mlConfidenceScore !== undefined);
+                if (!mlAlert) return null;
+                
+                const getRatingColor = (rating?: string) => {
+                  switch (rating) {
+                    case 'A': return 'bg-green-500 text-white';
+                    case 'B': return 'bg-blue-500 text-white';
+                    case 'C': return 'bg-yellow-500 text-white';
+                    case 'D': return 'bg-red-500 text-white';
+                    default: return 'bg-gray-500 text-white';
+                  }
+                };
+                
+                const getRecommendationConfig = (rec?: string) => {
+                  switch (rec) {
+                    case 'STRONG_BUY': return { text: 'COMPRA FUERTE', color: 'text-green-700', bg: 'bg-green-100' };
+                    case 'BUY': return { text: 'COMPRA', color: 'text-green-600', bg: 'bg-green-50' };
+                    case 'HOLD': return { text: 'MANTENER', color: 'text-yellow-600', bg: 'bg-yellow-50' };
+                    case 'AVOID': return { text: 'EVITAR', color: 'text-red-600', bg: 'bg-red-50' };
+                    default: return { text: 'N/A', color: 'text-gray-600', bg: 'bg-gray-50' };
+                  }
+                };
+                
+                return (
+                  <div className="flex items-center space-x-3">
+                    <div className={`px-3 py-1 rounded-full font-black text-lg ${getRatingColor(mlAlert.mlQualityRating)}`}>
+                      {mlAlert.mlQualityRating || 'N/A'}
+                    </div>
+                    <div className={`px-3 py-1 rounded-lg font-semibold text-sm ${getRecommendationConfig(mlAlert.mlRecommendation).bg} ${getRecommendationConfig(mlAlert.mlRecommendation).color}`}>
+                      {getRecommendationConfig(mlAlert.mlRecommendation).text}
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+            
+            {(() => {
+              const mlAlert = alert.rawAlerts.find(a => a.mlConfidenceScore !== undefined);
+              if (!mlAlert || mlAlert.mlConfidenceScore === undefined) return null;
+              
+              const score = mlAlert.mlConfidenceScore;
+              const getScoreColor = (s: number) => {
+                if (s >= 80) return 'bg-green-500';
+                if (s >= 70) return 'bg-blue-500';
+                if (s >= 60) return 'bg-yellow-500';
+                return 'bg-red-500';
+              };
+              
+              return (
+                <div>
+                  {/* Barra de progreso del score */}
+                  <div className="mb-2">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-semibold text-slate-600">Quality Score</span>
+                      <span className="text-lg font-black text-slate-900">{score}/100</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                      <div 
+                        className={`h-full ${getScoreColor(score)} transition-all duration-500 rounded-full`}
+                        style={{ width: `${score}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                  
+                  {/* Razones del ML */}
+                  {mlAlert.mlReasons && mlAlert.mlReasons.length > 0 && (
+                    <div className="mt-3 bg-white/80 rounded-lg p-3">
+                      <div className="text-xs font-semibold text-slate-600 mb-2">✅ Factores de Calidad:</div>
+                      <div className="space-y-1">
+                        {mlAlert.mlReasons.map((reason, idx) => (
+                          <div key={idx} className="text-xs text-slate-700 flex items-start space-x-1">
+                            <span className="text-indigo-500">•</span>
+                            <span>{reason}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+            </div>
+          ) : (
+            /* Upgrade Prompt para usuarios FREE/PRO */
+            <div className="mb-5 bg-gradient-to-r from-gray-50 via-slate-100 to-gray-50 rounded-xl p-4 border-2 border-gray-300 shadow-md relative overflow-hidden">
+              {/* Blur overlay */}
+              <div className="absolute inset-0 backdrop-blur-sm bg-white/30 z-10"></div>
+              
+              {/* Contenido bloqueado (preview borroso) */}
+              <div className="blur-sm opacity-50">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xl">🧠</span>
+                    <h4 className="font-bold text-slate-900">ML Signal Quality</h4>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="px-3 py-1 rounded-full bg-green-500 text-white font-black text-lg">A</div>
+                  </div>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                  <div className="h-full bg-green-500 w-3/4 rounded-full"></div>
+                </div>
+              </div>
+              
+              {/* Botón de upgrade centrado */}
+              <div className="absolute inset-0 z-20 flex flex-col items-center justify-center">
+                <div className="bg-white rounded-xl shadow-2xl p-6 text-center max-w-sm border-2 border-indigo-500">
+                  <div className="text-4xl mb-2">🔒</div>
+                  <h3 className="font-black text-xl text-slate-900 mb-2">ML Signal Quality Score</h3>
+                  <p className="text-sm text-slate-600 mb-4">
+                    Descubre la confianza y calidad de cada señal con nuestro sistema de Machine Learning
+                  </p>
+                  <UpgradeButton 
+                    text="Upgrade a Premium"
+                    size="lg"
+                  />
+                  <p className="text-xs text-slate-500 mt-3">
+                    ✅ Feature exclusiva del plan <span className="font-bold">Premium</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+          )
+        )}
 
         {/* Track Trade Button (Solo Pro/Premium) */}
         {canTrackTrades ? (

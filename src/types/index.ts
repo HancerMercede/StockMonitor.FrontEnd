@@ -10,6 +10,13 @@ export interface Alert {
   isRead: boolean;
   value?: number;
   confidence?: number;
+  
+  // ML Signal Scoring Fields
+  mlConfidenceScore?: number;    // 0-100 score de calidad
+  mlQualityRating?: 'A' | 'B' | 'C' | 'D';  // Calificación de calidad
+  mlRecommendation?: 'STRONG_BUY' | 'BUY' | 'HOLD' | 'AVOID';  // Recomendación ML
+  mlReasons?: string[];          // Array de razones del score
+  
   indicators?: {
     currentPrice?: number;
     rsi?: number;

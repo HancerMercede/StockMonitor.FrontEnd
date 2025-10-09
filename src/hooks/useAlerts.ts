@@ -21,6 +21,17 @@ const mockAlerts: Alert[] = [
     source: 'StockMonitorAgent',
     isRead: false,
     value: 28.43,
+    // ML Score fields
+    mlConfidenceScore: 87,
+    mlQualityRating: 'A',
+    mlRecommendation: 'STRONG_BUY',
+    mlReasons: [
+      'RSI en zona de sobreventa extrema (28.43)',
+      'MACD muestra divergencia alcista',
+      'Volumen superior al promedio (+89%)',
+      'ADX confirma tendencia fuerte (32.5)',
+      'Señal no conflictiva con otros indicadores'
+    ],
     indicators: {
       currentPrice: 186.20,
       rsi: 28.43,
