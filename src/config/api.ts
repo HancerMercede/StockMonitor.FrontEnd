@@ -80,6 +80,16 @@ export const API_CONFIG = {
     STRIPE_CHECKOUT: '/payments/checkout',
     STRIPE_SUBSCRIPTION_ACTIVE: '/payments/subscriptions/active',
     STRIPE_SUBSCRIPTION_CANCEL: '/payments/subscriptions/cancel',
+    
+    // Admin Dashboard
+    ADMIN_OVERVIEW: '/admin/overview',
+    ADMIN_USERS_GROWTH: (days = 30) => `/admin/stats/users-growth?days=${days}`,
+    ADMIN_WIN_RATE_BY_SYMBOL: (days = 30) => `/admin/stats/win-rate-by-symbol?days=${days}`,
+    ADMIN_STRIPE_SUBSCRIPTIONS: (status?: string) => 
+      status ? `/admin/stripe/subscriptions?status=${status}` : '/admin/stripe/subscriptions',
+    ADMIN_REVENUE_METRICS: (days = 30) => `/admin/stripe/revenue-metrics?days=${days}`,
+    ADMIN_CHANGE_USER_TIER: (userId: string) => `/admin/users/${userId}/change-tier`,
+    ADMIN_USER_DETAILS: (userId: string) => `/admin/users/${userId}/details`,
   }
 };
 

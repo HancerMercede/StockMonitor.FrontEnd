@@ -284,3 +284,146 @@ export interface SubscriptionStatusResponse {
   hasActiveSubscription: boolean;
   subscription: ActiveSubscription | null;
 }
+
+// ========== ADMIN DASHBOARD TYPES ==========
+
+export interface UserMetrics {
+  total: number;
+  active: number;
+  inactive: number;
+  activePercentage: number;
+  byTier: Record<string, number>;
+}
+
+export interface RevenueMetrics {
+  mrr: number;
+  projectedAnnual: number;
+  proSubscribers: number;
+  premiumSubscribers: number;
+  activeStripeSubscriptions?: number;
+  churnLast30Days?: number;
+}
+
+export interface TradeMetrics {
+  period: string;
+  total: number;
+  winners: number;
+  losers: number;
+  winRate: number;
+}
+
+export interface AlertMetrics {
+  period: string;
+  totalGenerated: number;
+  avgQualityScore: number;
+  avgMLScore: number;
+  withMLScore: number;
+}
+
+export interface SystemOverview {
+  users: UserMetrics;
+  revenue: RevenueMetrics;
+  trades: TradeMetrics;
+  alerts: AlertMetrics;
+  timestamp: string;
+}
+
+export interface DailyGrowthData {
+  date: string;
+  newUsers: number;
+  cumulative: number;
+}
+
+export interface UsersGrowthStats {
+  period: string;
+  data: DailyGrowthData[];
+  totalNewUsers: number;
+}
+
+export interface SymbolStats {
+  symbol: string;
+  totalTrades: number;
+  winners: number;
+  losers: number;
+  winRate: number;
+}
+
+export interface WinRateBySymbol {
+  period: string;
+  data: SymbolStats[];
+}
+
+export interface AdminStripeSubscription {
+  subscriptionId: string;
+  stripeSubscriptionId: string;
+  user: {
+    id: string;
+    username: string;
+    email: string;
+  };
+  tier: {
+    id: string;
+    name: string;
+    price: number;
+  };
+  status: string;
+  currentPeriodStart: string;
+  currentPeriodEnd: string;
+  cancelAtPeriodEnd: boolean;
+  createdAt: string;
+  canceledAt?: string;
+  endedAt?: string;
+}
+
+export interface StripeSubscriptionsResponse {
+  total: number;
+  subscriptions: AdminStripeSubscription[];
+}
+
+export interface RevenueMetricsDetailed {
+  period: string;
+  mrr: {
+    current: number;
+    projectedAnnual: number;
+  };
+  subscriptions: {
+    active: number;
+    new_: number;
+    canceled: number;
+    churnRate: number;
+  };
+  growth: {
+    netNew: number;
+    growthRate: number;
+  };
+}
+
+export interface ChangeTierAdminRequest {
+  tierId: string;
+}
+
+export interface AdminUserDetails {
+  user: {
+    id: string;
+    username: string;
+    email: string;
+    isActive: boolean;
+    tierName: string;
+    createdAt: string;
+  };
+  stripe: {
+    hasCustomer: boolean;
+    customerId?: string;
+    hasActiveSubscription: boolean;
+    subscription?: {
+      id: string;
+      status: string;
+      currentPeriodEnd: string;
+      cancelAtPeriodEnd: boolean;
+    };
+  };
+  activity: {
+    totalTrades: number;
+    watchlistSymbols: number;
+  };
+}

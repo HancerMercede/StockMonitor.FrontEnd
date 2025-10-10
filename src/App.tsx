@@ -7,6 +7,8 @@ import Dashboard from './components/Dashboard';
 import UserProfile from './components/UserProfile';
 import SubscriptionPlans from './components/SubscriptionPlans';
 import SubscriptionSuccess from './components/SubscriptionSuccess';
+import AdminDashboard from './components/AdminDashboard';
+import AdminRoute from './components/AdminRoute';
 
 function App() {
   return (
@@ -26,6 +28,14 @@ function App() {
               <Route path="/profile" element={<UserProfile />} />
               <Route path="/subscription" element={<SubscriptionPlans />} />
               <Route path="/subscription/success" element={<SubscriptionSuccess />} />
+              <Route 
+                path="/admin" 
+                element={
+                  <AdminRoute>
+                    <AdminDashboard />
+                  </AdminRoute>
+                } 
+              />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </SignalRProvider>

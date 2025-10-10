@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, User as UserIcon, UserCircle, Crown } from 'lucide-react';
+import { LogOut, User as UserIcon, UserCircle, Crown, Shield } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { isAdmin } from '../utils/jwtUtils';
 import SubscriptionModal from './SubscriptionModal';
 
 interface UserMenuProps {
@@ -18,6 +19,9 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  
+  // Verificar si el usuario es admin
+  const userIsAdmin = isAdmin();
 
   // Cerrar el menú cuando se hace click fuera
   useEffect(() => {
@@ -78,6 +82,20 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onLogout }) => {
 
           {/* Menu Items */}
           <div className="py-1">
+            {/* Admin Dashboard - Solo visible para admins */}
+            {userIsAdmin && (
+              <button
+                onClick={() => {
+                  navigate('/admin');
+                  setIsOpen(false);
+                }}
+                className="w-full px-4 py-3 flex items-center space-x-3 text-amber-400 hover:bg-gray-700 transition-colors border-b border-gray-700"
+              >
+                <Shield className="w-4 h-4" />
+                <span className="text-sm font-medium">Admin Dashboard</span>
+              </button>
+            )}
+            
             <button
               onClick={() => {
                 navigate('/profile');
