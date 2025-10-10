@@ -283,21 +283,25 @@ const AlertHistory: React.FC = () => {
     );
   }
 
-  const getOutcomeIcon = (outcome?: string) => {
-    switch (outcome) {
-      case 'winner': return <TrendingUp className="w-5 h-5 text-green-600" />;
-      case 'loser': return <TrendingDown className="w-5 h-5 text-red-600" />;
-      case 'neutral': return <Minus className="w-5 h-5 text-yellow-600" />;
-      default: return <Calendar className="w-5 h-5 text-blue-600" />;
+  // Icono basado en la RECOMENDACIÓN (no en outcome)
+  const getRecommendationIcon = (recommendation: string) => {
+    if (recommendation.includes('BUY')) {
+      return <TrendingUp className="w-5 h-5 text-green-600" />;
+    } else if (recommendation.includes('SELL')) {
+      return <TrendingDown className="w-5 h-5 text-red-600" />;
+    } else {
+      return <Minus className="w-5 h-5 text-yellow-600" />;
     }
   };
 
-  const getOutcomeBadgeClass = (outcome?: string) => {
-    switch (outcome) {
-      case 'winner': return 'bg-green-100 text-green-800 border-green-300';
-      case 'loser': return 'bg-red-100 text-red-800 border-red-300';
-      case 'neutral': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-      default: return 'bg-blue-100 text-blue-800 border-blue-300';
+  // Badge basado en la RECOMENDACIÓN (no en outcome)
+  const getRecommendationBadgeClass = (recommendation: string) => {
+    if (recommendation.includes('BUY')) {
+      return 'bg-green-100 text-green-800 border-green-300';
+    } else if (recommendation.includes('SELL')) {
+      return 'bg-red-100 text-red-800 border-red-300';
+    } else {
+      return 'bg-yellow-100 text-yellow-800 border-yellow-300';
     }
   };
 
@@ -523,10 +527,10 @@ const AlertHistory: React.FC = () => {
           >
             <div className="grid grid-cols-12 gap-4 items-center">
               
-              {/* Outcome badge */}
+              {/* Recommendation badge */}
               <div className="col-span-1">
-                <div className={`flex items-center justify-center w-12 h-12 rounded-full ${getOutcomeBadgeClass(alert.outcome)}`}>
-                  {getOutcomeIcon(alert.outcome)}
+                <div className={`flex items-center justify-center w-12 h-12 rounded-full ${getRecommendationBadgeClass(alert.recommendation)}`}>
+                  {getRecommendationIcon(alert.recommendation)}
                 </div>
               </div>
 
