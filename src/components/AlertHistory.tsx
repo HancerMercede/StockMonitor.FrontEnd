@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { TrendingUp, TrendingDown, Minus, Calendar, Filter, Download, RefreshCw } from 'lucide-react';
 import { usePremiumAlerts, type PremiumAlert } from '../hooks/usePremiumAlerts';
-import { useConsolidatedAlerts } from '../hooks/useConsolidatedAlerts';
+import { useHistoryConsolidatedAlerts } from '../hooks/useHistoryConsolidatedAlerts';
 import { useStableConsolidatedAlerts } from '../hooks/useStableConsolidatedAlerts';
 import type { Alert, ConsolidatedAlert } from '../types';
 
@@ -24,7 +24,7 @@ interface PerformanceStats {
   worstAlert: AlertHistoryItem | null;
 }
 
-// Helper para convertir PremiumAlert del backend al formato Alert del frontend
+// Helper para convertir PremiumAlert a Alert preservando qualityScore
 const mapPremiumAlertToAlert = (premiumAlert: PremiumAlert): Alert => {
   return {
     id: premiumAlert.id,
@@ -36,6 +36,7 @@ const mapPremiumAlertToAlert = (premiumAlert: PremiumAlert): Alert => {
     source: premiumAlert.source,
     isRead: false,
     value: premiumAlert.currentPrice,
+    qualityScore: premiumAlert.qualityScore, // ✅ Preservar del backend
     indicators: {
       currentPrice: premiumAlert.currentPrice,
       rsi: premiumAlert.rsiValue,
@@ -58,13 +59,12 @@ const mapPremiumAlertToAlert = (premiumAlert: PremiumAlert): Alert => {
   };
 };
 
-// Helper para agregar outcome a alertas consolidadas
+// Mapear ConsolidatedAlert a AlertHistoryItem
 const mapConsolidatedToHistoryItem = (alert: ConsolidatedAlert): AlertHistoryItem => {
-  // Clasificar por confidence score
   let outcome: 'winner' | 'loser' | 'neutral' | 'pending';
-  if (alert.confidenceScore >= 85) {
+  if (alert.confidenceScore >= 80) {
     outcome = 'winner';
-  } else if (alert.confidenceScore <= 75) {
+  } else if (alert.confidenceScore < 65) {
     outcome = 'loser';
   } else {
     outcome = 'neutral';
@@ -79,7 +79,7 @@ const mapConsolidatedToHistoryItem = (alert: ConsolidatedAlert): AlertHistoryIte
   };
 };
 
-// DEPRECADO - Ya no se usa
+// Mapear PremiumAlert del backend directamente a AlertHistoryItem
 const mapPremiumAlertToHistoryItem_OLD = (alert: PremiumAlert): AlertHistoryItem => {
   // Determinar recommendation basado en el tipo de alerta
   const isBullish = alert.type.includes('Bullish') || alert.type.includes('Oversold');
@@ -165,15 +165,17 @@ const AlertHistory: React.FC = () => {
   // Obtener alertas premium del agente
   const { alerts: premiumAlerts, loading, error, refresh } = usePremiumAlerts(from, to);
   
-  // Convertir a formato Alert y consolidar (igual que alertas activas)
+  // Convertir a formato Alert preservando qualityScore
   const alertsForConsolidation = useMemo(
     () => premiumAlerts.map(mapPremiumAlertToAlert),
     [premiumAlerts]
   );
-  const rawConsolidatedAlerts = useConsolidatedAlerts(alertsForConsolidation);
+  
+  // Consolidar usando hook especializado que usa qualityScore del backend
+  const rawConsolidatedAlerts = useHistoryConsolidatedAlerts(alertsForConsolidation);
   const consolidatedAlerts = useStableConsolidatedAlerts(rawConsolidatedAlerts);
   
-  // Mapear alertas consolidadas a formato con outcome
+  // Mapear a formato con outcome
   const historyAlerts: AlertHistoryItem[] = useMemo(
     () => consolidatedAlerts.map(mapConsolidatedToHistoryItem),
     [consolidatedAlerts]
@@ -181,16 +183,17 @@ const AlertHistory: React.FC = () => {
 
   // Calcular estadísticas locales  
   const localStats = useMemo((): PerformanceStats => {
-    const highQuality = historyAlerts.filter(a => a.confidenceScore >= 85);
-    const mediumQuality = historyAlerts.filter(a => a.confidenceScore > 75 && a.confidenceScore < 85);
-    const lowQuality = historyAlerts.filter(a => a.confidenceScore <= 75);
+    // Clasificar por nivel de confianza (no por resultado real)
+    const highConfidence = historyAlerts.filter(a => a.confidenceScore >= 80);
+    const mediumConfidence = historyAlerts.filter(a => a.confidenceScore >= 65 && a.confidenceScore < 80);
+    const lowConfidence = historyAlerts.filter(a => a.confidenceScore < 65);
     
-    // Promedio de quality score
-    const avgQualityScore = historyAlerts.length > 0
+    // Promedio de confianza
+    const avgConfidence = historyAlerts.length > 0
       ? historyAlerts.reduce((sum, a) => sum + a.confidenceScore, 0) / historyAlerts.length
       : 0;
 
-    // Mejor y peor alerta por quality score
+    // Mejor y peor alerta por confidence score
     const bestAlert = [...historyAlerts].sort((a, b) => 
       b.confidenceScore - a.confidenceScore
     )[0] || null;
@@ -201,12 +204,12 @@ const AlertHistory: React.FC = () => {
 
     return {
       totalAlerts: historyAlerts.length,
-      winners: highQuality.length,
-      losers: lowQuality.length,
-      neutral: mediumQuality.length,
-      pending: 0,
-      winRate: avgQualityScore,
-      avgReturn: avgQualityScore,
+      winners: highConfidence.length,    // Reusado como "Alta Confianza"
+      losers: lowConfidence.length,       // Reusado como "Baja Confianza"
+      neutral: mediumConfidence.length,   // Reusado como "Confianza Media"
+      pending: 0,                         // Sin uso por ahora
+      winRate: avgConfidence,             // Promedio de confianza
+      avgReturn: avgConfidence,           // Mismo valor
       bestAlert,
       worstAlert
     };
@@ -347,11 +350,11 @@ const AlertHistory: React.FC = () => {
           </div>
         </div>
 
-        {/* Ganadoras */}
+        {/* Alta Confianza */}
         <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-5 border-2 border-green-300">
           <div className="flex items-center justify-between mb-2">
             <div className="text-sm text-green-700 uppercase tracking-wide font-semibold">
-              Ganadoras
+              Alta Confianza
             </div>
             <TrendingUp className="w-5 h-5 text-green-600" />
           </div>
@@ -359,52 +362,52 @@ const AlertHistory: React.FC = () => {
             {localStats.winners}
           </div>
           <div className="text-xs text-green-600 mt-1">
-            {localStats.winRate.toFixed(1)}% win rate
+            ≥80% de confianza
           </div>
         </div>
 
-        {/* Perdedoras */}
-        <div className="bg-gradient-to-br from-red-50 to-rose-50 rounded-xl p-5 border-2 border-red-300">
+        {/* Baja Confianza */}
+        <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl p-5 border-2 border-orange-300">
           <div className="flex items-center justify-between mb-2">
-            <div className="text-sm text-red-700 uppercase tracking-wide font-semibold">
-              Perdedoras
+            <div className="text-sm text-orange-700 uppercase tracking-wide font-semibold">
+              Baja Confianza
             </div>
-            <TrendingDown className="w-5 h-5 text-red-600" />
+            <TrendingDown className="w-5 h-5 text-orange-600" />
           </div>
-          <div className="text-3xl font-black text-red-700">
+          <div className="text-3xl font-black text-orange-700">
             {localStats.losers}
           </div>
-          <div className="text-xs text-red-600 mt-1">
-            {((localStats.losers / (localStats.totalAlerts - localStats.pending)) * 100).toFixed(1)}% de cerradas
+          <div className="text-xs text-orange-600 mt-1">
+            &lt;65% de confianza
           </div>
         </div>
 
-        {/* Neutrales */}
-        <div className="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-xl p-5 border-2 border-yellow-300">
+        {/* Confianza Media */}
+        <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-5 border-2 border-blue-300">
           <div className="flex items-center justify-between mb-2">
-            <div className="text-sm text-yellow-700 uppercase tracking-wide font-semibold">
-              Neutrales
+            <div className="text-sm text-blue-700 uppercase tracking-wide font-semibold">
+              Confianza Media
             </div>
-            <Minus className="w-5 h-5 text-yellow-600" />
+            <Minus className="w-5 h-5 text-blue-600" />
           </div>
-          <div className="text-3xl font-black text-yellow-700">
+          <div className="text-3xl font-black text-blue-700">
             {localStats.neutral}
           </div>
-          <div className="text-xs text-yellow-600 mt-1">
-            Break-even aprox
+          <div className="text-xs text-blue-600 mt-1">
+            65-80% de confianza
           </div>
         </div>
 
-        {/* Return promedio */}
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 border-2 border-blue-300">
-          <div className="text-sm text-blue-700 uppercase tracking-wide font-semibold mb-2">
-            Return Promedio
+        {/* Confianza Promedio */}
+        <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-5 border-2 border-purple-300">
+          <div className="text-sm text-purple-700 uppercase tracking-wide font-semibold mb-2">
+            Confianza Promedio
           </div>
-          <div className={`text-3xl font-black ${localStats.avgReturn >= 0 ? 'text-green-700' : 'text-red-700'}`}>
-            {localStats.avgReturn >= 0 ? '+' : ''}{localStats.avgReturn.toFixed(2)}%
+          <div className="text-3xl font-black text-purple-700">
+            {localStats.avgReturn.toFixed(1)}%
           </div>
-          <div className="text-xs text-blue-600 mt-1">
-            Por operación
+          <div className="text-xs text-purple-600 mt-1">
+            De todas las alertas
           </div>
         </div>
       </div>
@@ -495,10 +498,9 @@ const AlertHistory: React.FC = () => {
               className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="all">Todas ({localStats.totalAlerts})</option>
-              <option value="winner">Ganadoras ({localStats.winners})</option>
-              <option value="loser">Perdedoras ({localStats.losers})</option>
-              <option value="neutral">Neutrales ({localStats.neutral})</option>
-              <option value="pending">Pendientes ({localStats.pending})</option>
+              <option value="winner">Alta Confianza ({localStats.winners})</option>
+              <option value="loser">Baja Confianza ({localStats.losers})</option>
+              <option value="neutral">Confianza Media ({localStats.neutral})</option>
             </select>
           </div>
 
@@ -593,8 +595,16 @@ const AlertHistory: React.FC = () => {
 
               {/* Metadata */}
               <div className="col-span-2 text-right">
-                <div className="text-xs text-slate-600">
-                  Confianza: <span className="font-bold text-slate-900">{alert.confidenceScore}%</span>
+                <div className="flex items-center justify-end gap-2 mb-1">
+                  <span className="text-xs text-slate-600">Confianza:</span>
+                  <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                    alert.confidenceScore >= 80 ? 'bg-green-100 text-green-700' :
+                    alert.confidenceScore >= 65 ? 'bg-blue-100 text-blue-700' :
+                    'bg-orange-100 text-orange-700'
+                  }`}>
+                    {alert.confidenceScore}%
+                    {alert.confidenceScore >= 80 ? ' ✓' : alert.confidenceScore < 65 ? ' ⚠' : ''}
+                  </span>
                 </div>
                 <div className="text-xs text-slate-600 mt-1">
                   {alert.daysHeld} días • {alert.riskLevel}

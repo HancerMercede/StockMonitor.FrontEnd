@@ -10,6 +10,7 @@ export interface Alert {
   isRead: boolean;
   value?: number;
   confidence?: number;
+  qualityScore?: number;  // Quality score del backend (0-100)
   
   // ML Signal Scoring Fields
   mlConfidenceScore?: number;    // 0-100 score de calidad
