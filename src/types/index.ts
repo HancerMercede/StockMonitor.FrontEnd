@@ -142,6 +142,18 @@ export interface ConsolidatedAlert {
   lastUpdate: number;
   priority: Priority;
   
+  // News Sentiment Analysis (DistilBERT)
+  newsSentimentScore?: number;  // -1 to +1 (bearish to bullish)
+  newsSentiment?: 'Bullish' | 'Bearish' | 'Neutral';
+  bullishPercent?: number;  // % of bullish articles
+  bearishPercent?: number;  // % of bearish articles
+  neutralPercent?: number;  // % of neutral articles
+  newsHeadlines?: string[];  // Top headlines
+  confluenceType?: 'CONFLUENCIA' | 'DIVERGENCIA';
+  confluenceMessage?: string;
+  totalNewsAnalyzed?: number;
+  newsSentimentUpdatedAt?: string;
+  
   // Raw data for reference
   rawAlerts: Alert[];
 }

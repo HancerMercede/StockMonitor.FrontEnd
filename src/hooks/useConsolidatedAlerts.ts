@@ -204,6 +204,9 @@ const consolidateSymbolAlerts = (symbol: string, alerts: Alert[]): ConsolidatedA
   // Extraer datos técnicos específicos para traders profesionales
   const technicalIndicatorData = extractTechnicalIndicatorData(alerts);
 
+  // 📰 Generar sentimiento mock basado en la recomendación técnica
+  const mockSentiment = generateMockNewsSentiment(recommendation.action, symbol);
+  
   return {
     id: `consolidated-${symbol}`,
     symbol,
@@ -233,6 +236,9 @@ const consolidateSymbolAlerts = (symbol: string, alerts: Alert[]): ConsolidatedA
     alertCount: alerts.length,
     lastUpdate: Math.max(...alerts.map(a => new Date(a.timestamp).getTime())),
     priority,
+    
+    // 📰 News Sentiment Analysis (Mock Data)
+    ...mockSentiment,
     
     rawAlerts: alerts,
   };
@@ -1215,11 +1221,11 @@ const calculateDynamicPercentages = (
  */
 const estimateBasePriceBySymbol = (symbol: string): number => {
   const priceEstimates: Record<string, number> = {
-    'AAPL': 175,
+    'SPY': 653,
+    'QQQ': 589.50,
     'MSFT': 350,
     'GOOGL': 2800,
     'AMZN': 3200,
-    'TSLA': 250,
     'NVDA': 450,
     'META': 320,
     'AMD': 140,
@@ -1228,4 +1234,176 @@ const estimateBasePriceBySymbol = (symbol: string): number => {
   };
   
   return priceEstimates[symbol.toUpperCase()] || 100; // Default $100
+};
+
+/**
+ * Genera sentimiento mock de noticias basado en la recomendación técnica
+ */
+const generateMockNewsSentiment = (recommendation: ConsolidatedRecommendation, symbol: string) => {
+  const isBullish = recommendation.includes('BUY');
+  const isBearish = recommendation.includes('SELL');
+  const isStrong = recommendation.includes('STRONG');
+  
+  // Headlines mock por símbolo
+  const headlinesBySymbol: Record<string, { bullish: string[]; bearish: string[]; neutral: string[] }> = {
+    'SPY': {
+      bullish: [
+        'S&P 500 rebounds on positive economic data and Fed dovish signals',
+        'Corporate earnings exceed expectations across major sectors',
+        'Institutional buyers return as dip-buying opportunity emerges'
+      ],
+      bearish: [
+        'Market Selloff Intensifies: S&P 500 Drops 2.2% on Economic Concerns',
+        'Tech Stocks Lead Decline as Nasdaq Falls 2.8%, Investors Flee to Safety',
+        'Fed Officials Signal Caution on Rate Cuts Amid Persistent Inflation Data',
+        'VIX Spikes to 18.5 as Market Volatility Returns with Force',
+        'Institutional Money Flows Out: Fund Managers Reduce Equity Exposure',
+        'Bitcoin Plunges 4.2% as Risk-Off Sentiment Spreads to All Asset Classes'
+      ],
+      neutral: [
+        'S&P 500 consolidates after sharp decline, traders await key data',
+        'Market volatility expected to continue in coming weeks',
+        'Analysts debate whether correction presents buying opportunity'
+      ]
+    },
+    'QQQ': {
+      bullish: [
+        'Nasdaq 100 rallies on strong AI sector earnings and tech resilience',
+        'Big Tech shows support levels holding despite macro headwinds',
+        'Institutional buying returns to oversold tech names'
+      ],
+      bearish: [
+        'Nasdaq Plunges 2.8% in Worst Single-Day Drop Since March Selloff',
+        'Tech Valuations Under Pressure as Interest Rates Remain Elevated',
+        'Growth Stocks Face Perfect Storm: Rising Rates and Slowing Growth',
+        'Semiconductor Stocks Lead Tech Decline on Demand Concerns'
+      ],
+      neutral: [
+        'Nasdaq 100 searches for bottom after steep correction',
+        'Tech sector awaits key earnings from mega-cap stocks',
+        'Mixed signals from tech leaders on forward guidance'
+      ]
+    },
+    'NVDA': {
+      bullish: [
+        'NVIDIA announces breakthrough AI chip with 40% performance gain',
+        'Strong demand for H100 GPUs continues through 2025',
+        'Microsoft and Google increase NVIDIA chip orders'
+      ],
+      bearish: [
+        'AMD launches competing AI chip at lower price point',
+        'Export restrictions to China impact revenue outlook',
+        'Supply chain constraints delay new product launch'
+      ],
+      neutral: [
+        'NVIDIA CEO discusses AI infrastructure trends',
+        'Company announces partnership with cloud providers',
+        'NVIDIA expands into automotive sector'
+      ]
+    }
+  };
+  
+  // Default headlines si el símbolo no está en la lista
+  const defaultHeadlines = {
+    bullish: [
+      `${symbol} reports better than expected quarterly results`,
+      `Analysts upgrade ${symbol} stock rating`,
+      `Strong institutional buying in ${symbol} shares`
+    ],
+    bearish: [
+      `${symbol} faces regulatory challenges`,
+      `Analysts express concerns about ${symbol} valuation`,
+      `Insider selling reported at ${symbol}`
+    ],
+    neutral: [
+      `${symbol} announces strategic partnership`,
+      `Company updates guidance for next quarter`,
+      `${symbol} CEO discusses market conditions`
+    ]
+  };
+  
+  const headlines = headlinesBySymbol[symbol] || defaultHeadlines;
+  
+  // Generar sentimiento basado en recomendación técnica
+  let newsSentiment: 'Bullish' | 'Bearish' | 'Neutral';
+  let newsSentimentScore: number;
+  let bullishPercent: number;
+  let bearishPercent: number;
+  let neutralPercent: number;
+  let newsHeadlines: string[];
+  let confluenceType: 'CONFLUENCIA' | 'DIVERGENCIA' | undefined;
+  let confluenceMessage: string | undefined;
+  
+  if (isBullish) {
+    // 80% de las veces, noticias coinciden con técnico (CONFLUENCIA)
+    const hasConfluence = Math.random() > 0.2;
+    
+    if (hasConfluence) {
+      newsSentiment = 'Bullish';
+      newsSentimentScore = isStrong ? 0.55 + Math.random() * 0.25 : 0.35 + Math.random() * 0.20;
+      bullishPercent = 65 + Math.random() * 20;
+      bearishPercent = 10 + Math.random() * 15;
+      neutralPercent = 100 - bullishPercent - bearishPercent;
+      newsHeadlines = headlines.bullish;
+      confluenceType = 'CONFLUENCIA';
+      confluenceMessage = '✅ CONFLUENCIA ALCISTA: Análisis técnico y sentimiento de noticias ambos positivos';
+    } else {
+      // DIVERGENCIA: técnico alcista pero noticias bajistas
+      newsSentiment = 'Bearish';
+      newsSentimentScore = -0.25 - Math.random() * 0.20;
+      bullishPercent = 20 + Math.random() * 15;
+      bearishPercent = 50 + Math.random() * 20;
+      neutralPercent = 100 - bullishPercent - bearishPercent;
+      newsHeadlines = headlines.bearish;
+      confluenceType = 'DIVERGENCIA';
+      confluenceMessage = '⚠️ DIVERGENCIA: Señal técnica ALCISTA pero noticias BAJISTAS - Precaución recomendada';
+    }
+  } else if (isBearish) {
+    // 80% de las veces, noticias coinciden con técnico (CONFLUENCIA)
+    const hasConfluence = Math.random() > 0.2;
+    
+    if (hasConfluence) {
+      newsSentiment = 'Bearish';
+      newsSentimentScore = isStrong ? -0.55 - Math.random() * 0.25 : -0.35 - Math.random() * 0.20;
+      bullishPercent = 10 + Math.random() * 15;
+      bearishPercent = 65 + Math.random() * 20;
+      neutralPercent = 100 - bullishPercent - bearishPercent;
+      newsHeadlines = headlines.bearish;
+      confluenceType = 'CONFLUENCIA';
+      confluenceMessage = '🔴 CONFLUENCIA BAJISTA: Análisis técnico y sentimiento de noticias ambos negativos';
+    } else {
+      // DIVERGENCIA: técnico bajista pero noticias alcistas
+      newsSentiment = 'Bullish';
+      newsSentimentScore = 0.25 + Math.random() * 0.20;
+      bullishPercent = 50 + Math.random() * 20;
+      bearishPercent = 20 + Math.random() * 15;
+      neutralPercent = 100 - bullishPercent - bearishPercent;
+      newsHeadlines = headlines.bullish;
+      confluenceType = 'DIVERGENCIA';
+      confluenceMessage = '⚠️ DIVERGENCIA: Señal técnica BAJISTA pero noticias ALCISTAS - Precaución recomendada';
+    }
+  } else {
+    // WATCH - noticias neutrales
+    newsSentiment = 'Neutral';
+    newsSentimentScore = -0.1 + Math.random() * 0.2;
+    bullishPercent = 30 + Math.random() * 10;
+    bearishPercent = 30 + Math.random() * 10;
+    neutralPercent = 100 - bullishPercent - bearishPercent;
+    newsHeadlines = headlines.neutral;
+    confluenceType = undefined;
+    confluenceMessage = undefined;
+  }
+  
+  return {
+    newsSentimentScore,
+    newsSentiment,
+    bullishPercent,
+    bearishPercent,
+    neutralPercent,
+    newsHeadlines,
+    confluenceType,
+    confluenceMessage,
+    totalNewsAnalyzed: 12 + Math.floor(Math.random() * 8), // 12-20 noticias
+    newsSentimentUpdatedAt: new Date().toISOString()
+  };
 };

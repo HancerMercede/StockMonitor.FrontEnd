@@ -604,6 +604,153 @@ const ConsolidatedAlertCard: React.FC<ConsolidatedAlertCardProps> = memo(({
           </div>
         </div>
 
+        {/* NEWS SENTIMENT ANALYSIS - DistilBERT - Solo para Premium */}
+        {alert.newsSentiment && (
+          hasAccessToMLScore ? (
+          <div className="mb-5 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-4 border-2 border-blue-300">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center space-x-2">
+                <span className="text-xl">📰</span>
+                <h4 className="font-bold text-slate-900">Sentimiento de Noticias</h4>
+                <span className="text-xs text-slate-500">({alert.totalNewsAnalyzed || 0} noticias)</span>
+              </div>
+              <div className={`px-4 py-2 rounded-full font-bold text-sm ${
+                alert.newsSentiment === 'Bullish' ? 'bg-green-500 text-white' :
+                alert.newsSentiment === 'Bearish' ? 'bg-red-500 text-white' :
+                'bg-yellow-500 text-white'
+              }`}>
+                {alert.newsSentiment === 'Bullish' ? '🟢 Bullish' :
+                 alert.newsSentiment === 'Bearish' ? '🔴 Bearish' :
+                 '🟡 Neutral'}
+                {alert.newsSentimentScore !== undefined && (
+                  <span className="ml-1">({alert.newsSentimentScore > 0 ? '+' : ''}{alert.newsSentimentScore.toFixed(2)})</span>
+                )}
+              </div>
+            </div>
+            
+            {/* Confluencia/Divergencia */}
+            {alert.confluenceType && (
+              <div className={`mb-3 p-3 rounded-lg border-2 ${
+                alert.confluenceType === 'CONFLUENCIA'
+                  ? (alert.recommendation.includes('SELL') 
+                      ? 'bg-red-50 border-red-300' 
+                      : 'bg-green-50 border-green-300')
+                  : 'bg-yellow-50 border-yellow-300'
+              }`}>
+                <div className="flex items-start space-x-2">
+                  <span className="text-xl">
+                    {alert.confluenceType === 'CONFLUENCIA' 
+                      ? (alert.recommendation.includes('SELL') ? '🔴' : '✅')
+                      : '⚠️'
+                    }
+                  </span>
+                  <div>
+                    <div className={`font-bold text-sm mb-1 ${
+                      alert.confluenceType === 'CONFLUENCIA' 
+                        ? (alert.recommendation.includes('SELL') ? 'text-red-800' : 'text-green-800')
+                        : 'text-yellow-800'
+                    }`}>
+                      {alert.confluenceType}
+                    </div>
+                    <div className="text-xs text-slate-700">
+                      {alert.confluenceMessage}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Breakdown de Sentimiento */}
+            <div className="grid grid-cols-3 gap-2 mb-3">
+              <div className="bg-white/70 rounded-lg p-2 text-center">
+                <div className="text-xs text-green-600 font-semibold mb-1">📈 Alcista</div>
+                <div className="text-lg font-black text-green-700">
+                  {Math.round(alert.bullishPercent || 0)}%
+                </div>
+              </div>
+              <div className="bg-white/70 rounded-lg p-2 text-center">
+                <div className="text-xs text-red-600 font-semibold mb-1">📉 Bajista</div>
+                <div className="text-lg font-black text-red-700">
+                  {Math.round(alert.bearishPercent || 0)}%
+                </div>
+              </div>
+              <div className="bg-white/70 rounded-lg p-2 text-center">
+                <div className="text-xs text-slate-600 font-semibold mb-1">➖ Neutral</div>
+                <div className="text-lg font-black text-slate-700">
+                  {Math.round(alert.neutralPercent || 0)}%
+                </div>
+              </div>
+            </div>
+            
+            {/* Top Headlines */}
+            {alert.newsHeadlines && alert.newsHeadlines.length > 0 && (
+              <div className="bg-white/80 rounded-lg p-3">
+                <div className="text-xs font-semibold text-slate-600 mb-2">📰 Últimas noticias:</div>
+                <div className="space-y-2">
+                  {alert.newsHeadlines.slice(0, 3).map((headline, idx) => (
+                    <div key={idx} className="text-xs text-slate-700 flex items-start space-x-2">
+                      <span className="text-blue-500 flex-shrink-0">•</span>
+                      <span className="line-clamp-2">{headline}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          ) : (
+            /* Upgrade Prompt para usuarios FREE/PRO - Sentimiento de Noticias */
+            <div className="mb-5 bg-gradient-to-r from-gray-50 via-slate-100 to-gray-50 rounded-xl p-4 border-2 border-gray-300 shadow-md relative overflow-hidden">
+              {/* Blur overlay */}
+              <div className="absolute inset-0 backdrop-blur-sm bg-white/30 z-10"></div>
+              
+              {/* Contenido bloqueado (preview borroso) */}
+              <div className="blur-sm opacity-50">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xl">📰</span>
+                    <h4 className="font-bold text-slate-900">Sentimiento de Noticias</h4>
+                  </div>
+                  <div className="px-4 py-2 rounded-full bg-green-500 text-white font-bold text-sm">
+                    🟢 Bullish (+0.65)
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="bg-white/70 rounded-lg p-2">
+                    <div className="text-xs text-green-600">Alcista</div>
+                    <div className="text-lg font-black text-green-700">70%</div>
+                  </div>
+                  <div className="bg-white/70 rounded-lg p-2">
+                    <div className="text-xs text-red-600">Bajista</div>
+                    <div className="text-lg font-black text-red-700">15%</div>
+                  </div>
+                  <div className="bg-white/70 rounded-lg p-2">
+                    <div className="text-xs text-slate-600">Neutral</div>
+                    <div className="text-lg font-black text-slate-700">15%</div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Botón de upgrade centrado */}
+              <div className="absolute inset-0 z-20 flex flex-col items-center justify-center">
+                <div className="bg-white rounded-xl shadow-2xl p-6 text-center max-w-sm border-2 border-blue-500">
+                  <div className="text-4xl mb-2">🔒</div>
+                  <h3 className="font-black text-xl text-slate-900 mb-2">Análisis de Sentimiento</h3>
+                  <p className="text-sm text-slate-600 mb-4">
+                    Conoce el sentimiento del mercado analizado con DistilBERT IA para cada alerta
+                  </p>
+                  <UpgradeButton 
+                    text="Upgrade a Premium"
+                    size="lg"
+                  />
+                  <p className="text-xs text-slate-500 mt-3">
+                    ✅ Feature exclusiva del plan <span className="font-bold">Premium</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+          )
+        )}
+
         {/* ML SIGNAL QUALITY SCORE - Solo para Premium */}
         {alert.rawAlerts.some(a => a.mlConfidenceScore !== undefined) && (
           hasAccessToMLScore ? (
@@ -681,7 +828,9 @@ const ConsolidatedAlertCard: React.FC<ConsolidatedAlertCardProps> = memo(({
                   {/* Razones del ML */}
                   {mlAlert.mlReasons && mlAlert.mlReasons.length > 0 && (
                     <div className="mt-3 bg-white/80 rounded-lg p-3">
-                      <div className="text-xs font-semibold text-slate-600 mb-2">✅ Factores de Calidad:</div>
+                      <div className="text-xs font-semibold text-slate-600 mb-2">
+                        {alert.recommendation.includes('SELL') ? '🔴' : '✅'} Factores de Calidad:
+                      </div>
                       <div className="space-y-1">
                         {mlAlert.mlReasons.map((reason, idx) => (
                           <div key={idx} className="text-xs text-slate-700 flex items-start space-x-1">
