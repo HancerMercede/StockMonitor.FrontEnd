@@ -123,7 +123,7 @@ export default function EditTradeModal({ trade, onClose, onSuccess }: EditTradeM
           {/* Outcome */}
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-2">
-              Resultado
+              Estado del Trade
             </label>
             <select
               value={formData.outcome}
@@ -132,6 +132,7 @@ export default function EditTradeModal({ trade, onClose, onSuccess }: EditTradeM
               required
             >
               <option value="">Selecciona...</option>
+              <option value="OPEN">Abierto</option>
               <option value="WINNER">Winner</option>
               <option value="LOSER">Loser</option>
             </select>
