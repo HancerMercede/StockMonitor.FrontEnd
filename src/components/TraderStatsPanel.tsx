@@ -399,12 +399,6 @@ export default function TraderStatsPanel({ onRefetchReady }: Props = {}) {
                 {/* Screenshot */}
                 {trade.screenshotBase64 && (
                   <div className="mt-3 pt-3 border-t border-slate-200">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-semibold text-slate-700">
-                        <ImageIcon className="w-4 h-4 inline mr-1" />
-                        Screenshot del Trade
-                      </span>
-                    </div>
                     {expandedImageId === trade.id ? (
                       <div className="relative">
                         <img
@@ -421,13 +415,17 @@ export default function TraderStatsPanel({ onRefetchReady }: Props = {}) {
                         </button>
                       </div>
                     ) : (
-                      <img
-                        src={trade.screenshotBase64}
-                        alt="Trade screenshot preview"
-                        className="max-h-32 rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                      <button
                         onClick={() => setExpandedImageId(trade.id)}
-                        title="Click para expandir"
-                      />
+                        className={`inline-flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors font-semibold ${
+                          trade.outcome === 'Winner'
+                            ? 'bg-green-100 text-green-700 hover:bg-green-200 border-2 border-green-300'
+                            : 'bg-red-100 text-red-700 hover:bg-red-200 border-2 border-red-300'
+                        }`}
+                      >
+                        <ImageIcon className="w-5 h-5" />
+                        <span>Ver Imagen del Trade</span>
+                      </button>
                     )}
                   </div>
                 )}
