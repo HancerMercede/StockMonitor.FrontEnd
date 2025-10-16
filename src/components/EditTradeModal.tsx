@@ -11,6 +11,8 @@ interface EditTradeModalProps {
 export default function EditTradeModal({ trade, onClose, onSuccess }: EditTradeModalProps) {
   const [formData, setFormData] = useState({
     outcome: trade.outcome || '',
+    entryDate: new Date(trade.entryDate).toISOString().slice(0, 16),
+    exitDate: new Date(trade.exitDate).toISOString().slice(0, 16),
     entryPrice: trade.entryPrice || '',
     exitPrice: trade.exitPrice || '',
     notes: trade.notes || '',
@@ -65,6 +67,16 @@ export default function EditTradeModal({ trade, onClose, onSuccess }: EditTradeM
       
       // Solo enviar campos modificados
       if (formData.outcome !== trade.outcome) payload.outcome = formData.outcome.toUpperCase();
+      
+      const originalEntryDate = new Date(trade.entryDate).toISOString().slice(0, 16);
+      const originalExitDate = new Date(trade.exitDate).toISOString().slice(0, 16);
+      if (formData.entryDate !== originalEntryDate) {
+        payload.entryDate = new Date(formData.entryDate).toISOString();
+      }
+      if (formData.exitDate !== originalExitDate) {
+        payload.exitDate = new Date(formData.exitDate).toISOString();
+      }
+      
       if (parseFloat(formData.entryPrice) !== trade.entryPrice) {
         payload.entryPrice = parseFloat(formData.entryPrice);
       }
@@ -138,35 +150,31 @@ export default function EditTradeModal({ trade, onClose, onSuccess }: EditTradeM
             </select>
           </div>
 
-          {/* Entry Date (Read-only) */}
+          {/* Entry Date */}
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-2">
               Fecha de Entrada
             </label>
             <input
-              type="text"
-              value={new Date(trade.entryDate).toLocaleString('es-ES', { 
-                year: 'numeric', month: '2-digit', day: '2-digit',
-                hour: '2-digit', minute: '2-digit'
-              })}
-              className="w-full px-4 py-2 bg-slate-100 border-2 border-slate-200 rounded-lg text-slate-700 cursor-not-allowed"
-              disabled
+              type="datetime-local"
+              value={formData.entryDate}
+              onChange={(e) => setFormData({ ...formData, entryDate: e.target.value })}
+              className="w-full px-4 py-2 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:outline-none text-slate-900"
+              required
             />
           </div>
 
-          {/* Exit Date (Read-only) */}
+          {/* Exit Date */}
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-2">
               Fecha de Salida
             </label>
             <input
-              type="text"
-              value={new Date(trade.exitDate).toLocaleString('es-ES', { 
-                year: 'numeric', month: '2-digit', day: '2-digit',
-                hour: '2-digit', minute: '2-digit'
-              })}
-              className="w-full px-4 py-2 bg-slate-100 border-2 border-slate-200 rounded-lg text-slate-700 cursor-not-allowed"
-              disabled
+              type="datetime-local"
+              value={formData.exitDate}
+              onChange={(e) => setFormData({ ...formData, exitDate: e.target.value })}
+              className="w-full px-4 py-2 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:outline-none text-slate-900"
+              required
             />
           </div>
 
