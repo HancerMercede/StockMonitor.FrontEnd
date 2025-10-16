@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TrendingUp, TrendingDown, Calendar, DollarSign, Award, Target, Clock, BarChart3, Edit2, Zap, Activity, Plus, Image as ImageIcon } from 'lucide-react';
+import { TrendingUp, TrendingDown, Calendar, DollarSign, Award, Target, Clock, BarChart3, Edit2, Zap, Activity, Plus, Image as ImageIcon, Clock as ClockIcon } from 'lucide-react';
 import { useTradeHistory } from '../hooks/useTradeHistory';
 import EditTradeModal from './EditTradeModal';
 import AddManualTradeModal from './AddManualTradeModal';
@@ -313,23 +313,31 @@ export default function TraderStatsPanel({ onRefetchReady }: Props = {}) {
                       className={`w-12 h-12 rounded-full flex items-center justify-center ${
                         trade.outcome === 'Winner'
                           ? 'bg-green-100 border-2 border-green-300'
-                          : 'bg-red-100 border-2 border-red-300'
+                          : trade.outcome === 'Loser'
+                          ? 'bg-red-100 border-2 border-red-300'
+                          : 'bg-blue-100 border-2 border-blue-300'
                       }`}
                     >
                       {trade.outcome === 'Winner' ? (
                         <TrendingUp className="w-6 h-6 text-green-600" />
-                      ) : (
+                      ) : trade.outcome === 'Loser' ? (
                         <TrendingDown className="w-6 h-6 text-red-600" />
+                      ) : (
+                        <ClockIcon className="w-6 h-6 text-blue-600" />
                       )}
                     </div>
                     <div>
                       <h3 className="text-lg font-black text-slate-900">{trade.symbol}</h3>
                       <p
                         className={`text-sm font-semibold ${
-                          trade.outcome === 'Winner' ? 'text-green-700' : 'text-red-700'
+                          trade.outcome === 'Winner' 
+                            ? 'text-green-700' 
+                            : trade.outcome === 'Loser'
+                            ? 'text-red-700'
+                            : 'text-blue-700'
                         }`}
                       >
-                        {trade.outcome}
+                        {trade.outcome === 'Open' ? 'Abierto' : trade.outcome}
                       </p>
                     </div>
                   </div>
@@ -420,7 +428,9 @@ export default function TraderStatsPanel({ onRefetchReady }: Props = {}) {
                         className={`inline-flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors font-semibold ${
                           trade.outcome === 'Winner'
                             ? 'bg-green-100 text-green-700 hover:bg-green-200 border-2 border-green-300'
-                            : 'bg-red-100 text-red-700 hover:bg-red-200 border-2 border-red-300'
+                            : trade.outcome === 'Loser'
+                            ? 'bg-red-100 text-red-700 hover:bg-red-200 border-2 border-red-300'
+                            : 'bg-blue-100 text-blue-700 hover:bg-blue-200 border-2 border-blue-300'
                         }`}
                       >
                         <ImageIcon className="w-5 h-5" />

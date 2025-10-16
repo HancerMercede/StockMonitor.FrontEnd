@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { X, TrendingUp, TrendingDown, Upload, Image as ImageIcon } from 'lucide-react';
+import { X, TrendingUp, TrendingDown, Upload, Image as ImageIcon, Clock } from 'lucide-react';
 import { tradeTrackingService } from '../services/tradeTrackingService';
 import type { ConsolidatedAlert } from '../types';
 
@@ -11,7 +11,7 @@ interface Props {
 }
 
 export default function TradeTrackingModal({ alert, isOpen, onClose, onSuccess }: Props) {
-  const [outcome, setOutcome] = useState<'WINNER' | 'LOSER'>('WINNER');
+  const [outcome, setOutcome] = useState<'OPEN' | 'WINNER' | 'LOSER'>('OPEN');
   const [entryDate, setEntryDate] = useState(new Date().toISOString().slice(0, 16));
   const [exitDate, setExitDate] = useState(new Date().toISOString().slice(0, 16));
   const [entryPrice, setEntryPrice] = useState(alert.tradingAction.entryPrice?.toString() || '');
@@ -118,9 +118,25 @@ export default function TradeTrackingModal({ alert, isOpen, onClose, onSuccess }
           {/* Outcome */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-3">
-              Resultado del Trade
+              Estado del Trade
             </label>
-            <div className="grid grid-cols-2 gap-3">
+               <div className="grid grid-cols-3 gap-3">
+              <button
+                type="button"
+                onClick={() => setOutcome('OPEN')}
+                className={`p-4 rounded-lg border-2 transition-all ${
+                  outcome === 'OPEN'
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-200 hover:border-blue-300'
+                }`}
+              >
+                <div className="flex items-center justify-center space-x-2">
+                  <Clock className={`w-5 h-5 ${outcome === 'OPEN' ? 'text-blue-600' : 'text-gray-400'}`} />
+                  <span className={`font-semibold ${outcome === 'OPEN' ? 'text-blue-700' : 'text-gray-600'}`}>
+                    Abierto
+                  </span>
+                </div>
+              </button>
               <button
                 type="button"
                 onClick={() => setOutcome('WINNER')}
