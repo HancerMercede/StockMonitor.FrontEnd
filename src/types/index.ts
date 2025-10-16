@@ -176,6 +176,7 @@ export interface TrackTradeRequest {
   entryPrice?: number;
   exitPrice?: number;
   notes?: string;
+  screenshotBase64?: string;
 }
 
 export interface TradeHistoryItem {
@@ -190,6 +191,7 @@ export interface TradeHistoryItem {
   daysHeld: number;
   profitLoss?: number;
   notes?: string;
+  screenshotBase64?: string;
   createdAt: string;
 }
 

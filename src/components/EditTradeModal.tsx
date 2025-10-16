@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { X } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { X, Upload, Image as ImageIcon } from 'lucide-react';
 import { apiClient } from '../utils/apiClient';
 
 interface EditTradeModalProps {
@@ -15,8 +15,45 @@ export default function EditTradeModal({ trade, onClose, onSuccess }: EditTradeM
     exitPrice: trade.exitPrice || '',
     notes: trade.notes || '',
   });
+  const [screenshotBase64, setScreenshotBase64] = useState<string | null>(trade.screenshotBase64 || null);
+  const [imagePreview, setImagePreview] = useState<string | null>(trade.screenshotBase64 || null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validar tipo de archivo
+    if (!file.type.startsWith('image/')) {
+      setError('Por favor selecciona una imagen válida');
+      return;
+    }
+
+    // Validar tamaño (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('La imagen no debe superar 5MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      setScreenshotBase64(base64String);
+      setImagePreview(base64String);
+      setError('');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeImage = () => {
+    setScreenshotBase64(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,6 +72,9 @@ export default function EditTradeModal({ trade, onClose, onSuccess }: EditTradeM
         payload.exitPrice = parseFloat(formData.exitPrice);
       }
       if (formData.notes !== (trade.notes || '')) payload.notes = formData.notes;
+      if (screenshotBase64 !== (trade.screenshotBase64 || null)) {
+        payload.screenshotBase64 = screenshotBase64;
+      }
 
       await apiClient.put(`/api/trades/${trade.id}`, payload);
       onSuccess();
@@ -155,6 +195,53 @@ export default function EditTradeModal({ trade, onClose, onSuccess }: EditTradeM
               onChange={(e) => setFormData({ ...formData, exitPrice: e.target.value })}
               className="w-full px-4 py-2 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:outline-none text-slate-900"
             />
+          </div>
+
+          {/* Screenshot Upload */}
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
+              <ImageIcon className="w-4 h-4 inline mr-1" />
+              Screenshot del Trade (opcional)
+            </label>
+            
+            {!imagePreview ? (
+              <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={loading}
+                  className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors font-semibold"
+                >
+                  <Upload className="w-5 h-5" />
+                  <span>Seleccionar imagen</span>
+                </button>
+                <p className="text-xs text-slate-500 mt-2">PNG, JPG o GIF (máx. 5MB)</p>
+              </div>
+            ) : (
+              <div className="relative border-2 border-slate-300 rounded-lg p-4">
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="max-h-64 mx-auto rounded-lg"
+                />
+                <button
+                  type="button"
+                  onClick={removeImage}
+                  disabled={loading}
+                  className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Notes */}

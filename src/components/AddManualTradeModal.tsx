@@ -1,41 +1,36 @@
 import React, { useState, useRef } from 'react';
-import { X, TrendingUp, TrendingDown, Upload, Image as ImageIcon } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { X, Upload, Image as ImageIcon, TrendingUp, TrendingDown } from 'lucide-react';
 import { tradeTrackingService } from '../services/tradeTrackingService';
-import type { ConsolidatedAlert } from '../types';
 
 interface Props {
-  alert: ConsolidatedAlert;
-  isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
 }
 
-export default function TradeTrackingModal({ alert, isOpen, onClose, onSuccess }: Props) {
+export default function AddManualTradeModal({ onClose, onSuccess }: Props) {
+  const [symbol, setSymbol] = useState('');
   const [outcome, setOutcome] = useState<'WINNER' | 'LOSER'>('WINNER');
-  const [entryDate, setEntryDate] = useState(new Date().toISOString().slice(0, 16));
-  const [exitDate, setExitDate] = useState(new Date().toISOString().slice(0, 16));
-  const [entryPrice, setEntryPrice] = useState(alert.tradingAction.entryPrice?.toString() || '');
+  const [entryDate, setEntryDate] = useState('');
+  const [exitDate, setExitDate] = useState('');
+  const [entryPrice, setEntryPrice] = useState('');
   const [exitPrice, setExitPrice] = useState('');
   const [notes, setNotes] = useState('');
   const [screenshotBase64, setScreenshotBase64] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  if (!isOpen) return null;
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validar tipo de archivo
     if (!file.type.startsWith('image/')) {
       setError('Por favor selecciona una imagen válida');
       return;
     }
 
-    // Validar tamaño (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       setError('La imagen no debe superar 5MB');
       return;
@@ -46,7 +41,7 @@ export default function TradeTrackingModal({ alert, isOpen, onClose, onSuccess }
       const base64String = reader.result as string;
       setScreenshotBase64(base64String);
       setImagePreview(base64String);
-      setError('');
+      setError(null);
     };
     reader.readAsDataURL(file);
   };
@@ -61,48 +56,73 @@ export default function TradeTrackingModal({ alert, isOpen, onClose, onSuccess }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+
+    if (!symbol.trim()) {
+      setError('El símbolo es requerido');
+      return;
+    }
+
+    if (!entryDate || !exitDate) {
+      setError('Las fechas son requeridas');
+      return;
+    }
+
+    if (new Date(exitDate) < new Date(entryDate)) {
+      setError('La fecha de salida debe ser posterior a la fecha de entrada');
+      return;
+    }
+
+    const entryPriceNum = entryPrice ? parseFloat(entryPrice) : null;
+    const exitPriceNum = exitPrice ? parseFloat(exitPrice) : null;
+
+    if (entryPrice && isNaN(entryPriceNum!)) {
+      setError('Precio de entrada inválido');
+      return;
+    }
+
+    if (exitPrice && isNaN(exitPriceNum!)) {
+      setError('Precio de salida inválido');
+      return;
+    }
+
     setLoading(true);
-    setError('');
 
     try {
-      // Convertir fechas locales a UTC ISO string para PostgreSQL
-      const entryDateUtc = new Date(entryDate).toISOString();
-      const exitDateUtc = new Date(exitDate).toISOString();
-      
-      // userId ya no es necesario - el backend lo obtiene del token JWT
       await tradeTrackingService.trackTrade({
-        alertId: alert.id,
-        symbol: alert.symbol,
+        symbol: symbol.toUpperCase(),
         outcome,
-        entryDate: entryDateUtc,
-        exitDate: exitDateUtc,
-        entryPrice: entryPrice ? parseFloat(entryPrice) : undefined,
-        exitPrice: exitPrice ? parseFloat(exitPrice) : undefined,
+        entryDate: new Date(entryDate).toISOString(),
+        exitDate: new Date(exitDate).toISOString(),
+        entryPrice: entryPriceNum,
+        exitPrice: exitPriceNum,
         notes: notes || undefined,
         screenshotBase64: screenshotBase64 || undefined,
       });
 
       onSuccess();
       onClose();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al registrar trade');
+    } catch (err: any) {
+      setError(err.response?.data?.message || err.message || 'Error al registrar el trade');
     } finally {
       setLoading(false);
     }
   };
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Registrar Trade</h2>
-            <p className="text-sm text-gray-600 mt-1">
-              {alert.symbol} • {alert.recommendation}
-            </p>
+            <h2 className="text-2xl font-bold text-gray-900">📝 Agregar Trade Manual</h2>
+            <p className="text-sm text-gray-600 mt-1">Registra un trade independiente del sistema de alertas</p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            disabled={loading}
+          >
             <X className="w-5 h-5 text-gray-500" />
           </button>
         </div>
@@ -111,9 +131,25 @@ export default function TradeTrackingModal({ alert, isOpen, onClose, onSuccess }
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
-              {error}
+              <p className="text-sm font-semibold">{error}</p>
             </div>
           )}
+
+          {/* Symbol */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Símbolo *
+            </label>
+            <input
+              type="text"
+              value={symbol}
+              onChange={(e) => setSymbol(e.target.value.toUpperCase())}
+              placeholder="Ej: AAPL, TSLA, NVDA"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-semibold text-gray-900 bg-white"
+              required
+              disabled={loading}
+            />
+          </div>
 
           {/* Outcome */}
           <div>
@@ -124,6 +160,7 @@ export default function TradeTrackingModal({ alert, isOpen, onClose, onSuccess }
               <button
                 type="button"
                 onClick={() => setOutcome('WINNER')}
+                disabled={loading}
                 className={`p-4 rounded-lg border-2 transition-all ${
                   outcome === 'WINNER'
                     ? 'border-green-500 bg-green-50'
@@ -140,6 +177,7 @@ export default function TradeTrackingModal({ alert, isOpen, onClose, onSuccess }
               <button
                 type="button"
                 onClick={() => setOutcome('LOSER')}
+                disabled={loading}
                 className={`p-4 rounded-lg border-2 transition-all ${
                   outcome === 'LOSER'
                     ? 'border-red-500 bg-red-50'
@@ -163,11 +201,12 @@ export default function TradeTrackingModal({ alert, isOpen, onClose, onSuccess }
                 Fecha de Entrada
               </label>
               <input
-                type="datetime-local"
+                type="date"
                 value={entryDate}
                 onChange={(e) => setEntryDate(e.target.value)}
-                required
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
+                required
+                disabled={loading}
               />
             </div>
             <div>
@@ -175,11 +214,12 @@ export default function TradeTrackingModal({ alert, isOpen, onClose, onSuccess }
                 Fecha de Salida
               </label>
               <input
-                type="datetime-local"
+                type="date"
                 value={exitDate}
                 onChange={(e) => setExitDate(e.target.value)}
-                required
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
+                required
+                disabled={loading}
               />
             </div>
           </div>
@@ -195,8 +235,9 @@ export default function TradeTrackingModal({ alert, isOpen, onClose, onSuccess }
                 step="0.01"
                 value={entryPrice}
                 onChange={(e) => setEntryPrice(e.target.value)}
-                placeholder="175.50"
+                placeholder="0.00"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white placeholder-gray-400"
+                disabled={loading}
               />
             </div>
             <div>
@@ -208,8 +249,9 @@ export default function TradeTrackingModal({ alert, isOpen, onClose, onSuccess }
                 step="0.01"
                 value={exitPrice}
                 onChange={(e) => setExitPrice(e.target.value)}
-                placeholder="180.25"
+                placeholder="0.00"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white placeholder-gray-400"
+                disabled={loading}
               />
             </div>
           </div>
@@ -217,7 +259,6 @@ export default function TradeTrackingModal({ alert, isOpen, onClose, onSuccess }
           {/* Screenshot Upload */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              <ImageIcon className="w-4 h-4 inline mr-1" />
               Screenshot del Trade (opcional)
             </label>
             
@@ -269,9 +310,10 @@ export default function TradeTrackingModal({ alert, isOpen, onClose, onSuccess }
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
+              placeholder="Estrategia, razón de entrada/salida, lecciones aprendidas..."
               rows={3}
-              placeholder="Detalles adicionales sobre este trade..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white placeholder-gray-400"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none text-gray-900 bg-white placeholder-gray-400"
+              disabled={loading}
             />
           </div>
 
@@ -302,6 +344,7 @@ export default function TradeTrackingModal({ alert, isOpen, onClose, onSuccess }
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

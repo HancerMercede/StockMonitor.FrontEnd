@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { TrendingUp, TrendingDown, Calendar, DollarSign, Award, Target, Clock, BarChart3, Edit2, Zap, Activity } from 'lucide-react';
+import { TrendingUp, TrendingDown, Calendar, DollarSign, Award, Target, Clock, BarChart3, Edit2, Zap, Activity, Plus, Image as ImageIcon } from 'lucide-react';
 import { useTradeHistory } from '../hooks/useTradeHistory';
 import EditTradeModal from './EditTradeModal';
+import AddManualTradeModal from './AddManualTradeModal';
 import TraderCharts from './TraderCharts';
 
 interface Props {
@@ -11,6 +12,8 @@ interface Props {
 export default function TraderStatsPanel({ onRefetchReady }: Props = {}) {
   const [dateFilter, setDateFilter] = useState<'week' | 'month' | 'quarter' | 'all'>('all');
   const [editingTrade, setEditingTrade] = useState<any>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [expandedImageId, setExpandedImageId] = useState<string | null>(null);
   const { trades, stats, loading, error, refetch } = useTradeHistory();
   
   // Notificar al padre cuando refetch esté disponible
@@ -283,8 +286,17 @@ export default function TraderStatsPanel({ onRefetchReady }: Props = {}) {
       {/* Trades Timeline */}
       <div className="bg-white rounded-xl p-6 border-2 border-slate-200">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-slate-900">📝 Historial de Trades</h2>
-          <span className="text-sm text-slate-500">{trades.length} trades</span>
+          <div>
+            <h2 className="text-xl font-bold text-slate-900">📝 Historial de Trades</h2>
+            <span className="text-sm text-slate-500">{trades.length} trades registrados</span>
+          </div>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all shadow-lg"
+          >
+            <Plus className="w-5 h-5" />
+            <span>Agregar Trade Manual</span>
+          </button>
         </div>
 
         <div className="space-y-3">
@@ -383,6 +395,42 @@ export default function TraderStatsPanel({ onRefetchReady }: Props = {}) {
                     </p>
                   </div>
                 )}
+
+                {/* Screenshot */}
+                {trade.screenshotBase64 && (
+                  <div className="mt-3 pt-3 border-t border-slate-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-semibold text-slate-700">
+                        <ImageIcon className="w-4 h-4 inline mr-1" />
+                        Screenshot del Trade
+                      </span>
+                    </div>
+                    {expandedImageId === trade.id ? (
+                      <div className="relative">
+                        <img
+                          src={trade.screenshotBase64}
+                          alt="Trade screenshot"
+                          className="w-full rounded-lg cursor-pointer shadow-lg"
+                          onClick={() => setExpandedImageId(null)}
+                        />
+                        <button
+                          onClick={() => setExpandedImageId(null)}
+                          className="absolute top-2 right-2 px-3 py-1 bg-slate-900/80 text-white text-xs rounded-full hover:bg-slate-900 transition-colors"
+                        >
+                          Cerrar
+                        </button>
+                      </div>
+                    ) : (
+                      <img
+                        src={trade.screenshotBase64}
+                        alt="Trade screenshot preview"
+                        className="max-h-32 rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                        onClick={() => setExpandedImageId(trade.id)}
+                        title="Click para expandir"
+                      />
+                    )}
+                  </div>
+                )}
               </div>
             ))
           ) : (
@@ -406,6 +454,17 @@ export default function TraderStatsPanel({ onRefetchReady }: Props = {}) {
           onClose={() => setEditingTrade(null)}
           onSuccess={() => {
             setEditingTrade(null);
+            refetch();
+          }}
+        />
+      )}
+
+      {/* Add Manual Trade Modal */}
+      {showAddModal && (
+        <AddManualTradeModal
+          onClose={() => setShowAddModal(false)}
+          onSuccess={() => {
+            setShowAddModal(false);
             refetch();
           }}
         />

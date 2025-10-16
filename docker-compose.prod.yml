@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+      args:
+        - VITE_API_URL=${VITE_API_URL:-https://api.stockmonitor.app}
+        - VITE_SIGNALR_HUB_URL=${VITE_SIGNALR_HUB_URL:-https://api.stockmonitor.app/hubs/alerts}
+        - VITE_STRIPE_PUBLISHABLE_KEY=${VITE_STRIPE_PUBLISHABLE_KEY}
+    image: ${DOCKER_REGISTRY:-yourusername}/stockmonitor-frontend:${VERSION:-latest}
+    container_name: stockmonitor-frontend
+    restart: always
+    ports:
+      - "80:80"
+    networks:
+      - frontend
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+networks:
+  frontend:
+    driver: bridge
