@@ -170,7 +170,7 @@ export interface TrackTradeRequest {
   userId: string;
   alertId?: string;
   symbol: string;
-  outcome: 'WINNER' | 'LOSER';
+  outcome: 'WINNER' | 'LOSER' | 'OPEN';
   entryDate: string; // ISO
   exitDate: string;  // ISO
   entryPrice?: number;
@@ -193,6 +193,20 @@ export interface TradeHistoryItem {
   notes?: string;
   screenshotBase64?: string;
   createdAt: string;
+}
+
+export interface PaginationInfo {
+  currentPage: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
+export interface PaginatedTradeHistory {
+  data: TradeHistoryItem[];
+  pagination: PaginationInfo;
 }
 
 export interface SymbolWinRate {
