@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { TrendingUp, TrendingDown, Calendar, DollarSign, Award, Target, Clock, BarChart3, Edit2, Zap, Activity, Plus, Image as ImageIcon, Clock as ClockIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { TrendingUp, TrendingDown, Calendar, DollarSign, Award, Target, Clock, BarChart3, Edit2, Zap, Activity, Plus, Image as ImageIcon, Clock as ClockIcon, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
 import { useTradeHistory } from '../hooks/useTradeHistory';
+import { useDateFilters } from '../hooks/useDateFilters';
 import EditTradeModal from './EditTradeModal';
 import AddManualTradeModal from './AddManualTradeModal';
 import TraderCharts from './TraderCharts';
@@ -10,11 +11,14 @@ interface Props {
 }
 
 export default function TraderStatsPanel({ onRefetchReady }: Props = {}) {
-  const [dateFilter, setDateFilter] = useState<'week' | 'month' | 'quarter' | 'all'>('all');
   const [editingTrade, setEditingTrade] = useState<any>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [expandedImageId, setExpandedImageId] = useState<string | null>(null);
-  const { trades, stats, pagination, loading, error, refetch, nextPage, previousPage, goToPage, changePageSize } = useTradeHistory();
+  
+  // Hook para manejar filtros de fecha
+  const { selectedFilter, setSelectedFilter, filterOptions, dateRange } = useDateFilters();
+  
+  const { trades, stats, pagination, loading, error, refetch, nextPage, previousPage, goToPage, changePageSize } = useTradeHistory(undefined, dateRange.from, dateRange.to);
   
   // Notificar al padre cuando refetch esté disponible
   React.useEffect(() => {
@@ -37,8 +41,14 @@ export default function TraderStatsPanel({ onRefetchReady }: Props = {}) {
   if (error) {
     return (
       <div className="bg-red-50 border border-red-200 text-red-800 px-6 py-4 rounded-lg">
-        <p className="font-semibold">Error al cargar estadísticas</p>
+        <p className="font-semibold">⚠️ Error al cargar estadísticas</p>
         <p className="text-sm mt-1">{error}</p>
+        <button 
+          onClick={() => window.location.reload()} 
+          className="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+        >
+          Recargar página
+        </button>
       </div>
     );
   }
@@ -64,6 +74,30 @@ export default function TraderStatsPanel({ onRefetchReady }: Props = {}) {
           <p className="text-white/90 font-medium mt-1">
             Performance y análisis de tus trades registrados
           </p>
+        </div>
+        
+        {/* Filtro por semana */}
+        <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/20">
+            <Filter className="w-5 h-5 text-white" />
+            <span className="text-white font-medium">Filtrar por:</span>
+            <select
+              value={selectedFilter}
+              onChange={(e) => setSelectedFilter(e.target.value)}
+              className="px-3 py-1 bg-white border border-slate-300 rounded-md text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer min-w-[280px]"
+            >
+              {filterOptions.map((option) => (
+                <option 
+                  key={option.value} 
+                  value={option.value}
+                  disabled={option.value === 'separator'}
+                  className={option.value === 'separator' ? 'text-slate-400' : ''}
+                >
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 

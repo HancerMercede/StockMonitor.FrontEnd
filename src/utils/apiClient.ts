@@ -50,8 +50,24 @@ class ApiClient {
         throw new Error('Unauthorized');
       }
 
-      const errorData = await response.json().catch(() => ({ message: 'Request failed' }));
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      // Manejar respuesta de error
+      let errorMessage = 'Request failed';
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorData.title || JSON.stringify(errorData);
+        
+        // Solo log en desarrollo
+        if (import.meta.env.DEV) {
+          console.error('API Error:', {
+            url,
+            status: response.status,
+            errorData
+          });
+        }
+      } catch (e) {
+        errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      }
+      throw new Error(errorMessage);
     }
 
     // Si la respuesta está vacía, retornar null

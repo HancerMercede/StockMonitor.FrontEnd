@@ -15,6 +15,11 @@ export const useTradeHistory = (symbol?: string, from?: string, to?: string) => 
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Normalizar parámetros para evitar re-renders innecesarios
+  const normalizedSymbol = symbol || undefined;
+  const normalizedFrom = from || undefined;
+  const normalizedTo = to || undefined;
 
   // Fetch stats solo al inicio o cuando se hace refresh completo
   const fetchStats = useCallback(async () => {
@@ -30,14 +35,14 @@ export const useTradeHistory = (symbol?: string, from?: string, to?: string) => 
   const fetchTrades = useCallback(async (page: number, pageSize: number) => {
     try {
       setError(null);
-      const response = await tradeTrackingService.getHistory(symbol, from, to, page, pageSize);
+      const response = await tradeTrackingService.getHistory(normalizedSymbol, normalizedFrom, normalizedTo, page, pageSize);
       setTrades(response.data);
       setPagination(response.pagination);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar trades');
       console.error('Error fetching trades:', err);
     }
-  }, [symbol, from, to]);
+  }, [normalizedSymbol, normalizedFrom, normalizedTo]);
 
   // Fetch completo (trades + stats) - solo para inicialización o refresh
   const fetchAll = useCallback(async (page: number = 1, pageSize: number = 10) => {
@@ -46,7 +51,7 @@ export const useTradeHistory = (symbol?: string, from?: string, to?: string) => 
       setError(null);
       
       const [response] = await Promise.all([
-        tradeTrackingService.getHistory(symbol, from, to, page, pageSize),
+        tradeTrackingService.getHistory(normalizedSymbol, normalizedFrom, normalizedTo, page, pageSize),
         fetchStats()
       ]);
       
@@ -58,12 +63,12 @@ export const useTradeHistory = (symbol?: string, from?: string, to?: string) => 
     } finally {
       setLoading(false);
     }
-  }, [symbol, from, to, fetchStats]);
+  }, [normalizedSymbol, normalizedFrom, normalizedTo, fetchStats]);
 
-  // Solo cargar todo al inicio
+  // Cargar datos cuando cambien los filtros de fecha
   useEffect(() => {
     fetchAll(1, 10);
-  }, []);
+  }, [fetchAll]);
 
   const goToPage = useCallback((page: number) => {
     // Solo fetch trades, no stats
